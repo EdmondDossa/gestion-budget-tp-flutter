@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:budgetti/db/crud.dart';
+import 'package:budgetti/db/crud.repository.dart';
 import 'package:budgetti/db/db.helper.dart';
-import 'package:budgetti/models/category.dart';
+import 'package:budgetti/models/category/category.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-class CategoryRepository implements CrudInterface<Category> {
+class CategoryRepository implements CrudRepository<Category> {
   Database? _database;
 
   CategoryRepository() {
@@ -13,7 +13,7 @@ class CategoryRepository implements CrudInterface<Category> {
         sqfliteFfiInit();
         databaseFactory = databaseFactoryFfi;
       }
-
+    
     _initializeDatabase();
   }
 

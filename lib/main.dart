@@ -1,28 +1,18 @@
 import 'dart:io';
-
-import 'package:budgetti/db/db.helper.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-void main() {
+import 'package:budgetti/db/db.helper.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-    if (Platform.isWindows || Platform.isLinux) {
-      // Initialize FFI
-      sqfliteFfiInit();
-    }
-    
-    // Change the default factory. On iOS/Android, if not using `sqlite_flutter_lib` you can forget
-    // this step, it will use the sqlite version available on the system.
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+  }
 
-  DBHelper().database
-    .then((db) {
-      print("Database initialized");
-    })
-    .catchError((error) {
-      print("Error initializing database: $error");
-    });
+  await DBHelper().database;
 
   runApp(const MyApp());
 }
@@ -67,7 +57,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -89,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), 
+      ),
     );
   }
 }

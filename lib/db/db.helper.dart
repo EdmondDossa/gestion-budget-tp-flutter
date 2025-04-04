@@ -18,8 +18,6 @@ class DBHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'budgetti.db');
 
-    print("Database path: $path");
-
     return await openDatabase(
       path,
       version: 1,

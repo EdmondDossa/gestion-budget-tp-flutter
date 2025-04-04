@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class CategoryRepository implements CrudRepository<Category> {
   Database? _database;
+  static const String tableName = 'categories';
 
   CategoryRepository() {
       if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -23,7 +24,7 @@ class CategoryRepository implements CrudRepository<Category> {
 
   @override
   Future<List<Category>> getAll() async {
-    final List<Map<String, dynamic>> maps = await _database!.query('categories');
+    final List<Map<String, dynamic>> maps = await _database!.query(tableName);
 
     return List.generate(maps.length, (i) {
       return Category.fromMap(maps[i]);
@@ -33,7 +34,7 @@ class CategoryRepository implements CrudRepository<Category> {
   @override
   Future<Category?> getById(String id) async {
     final List<Map<String, dynamic>> maps = await _database!.query(
-      'categories',
+      tableName,
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -47,13 +48,13 @@ class CategoryRepository implements CrudRepository<Category> {
 
   @override
   Future<void> create(Category category) async {
-    await _database!.insert('categories', category.toMap());
+    await _database!.insert(tableName, category.toMap());
   }
 
   @override
   Future<void> update(String id, Category category) async {
     await _database!.update(
-      'categories',
+      tableName,
       category.toMap(),
       where: 'id = ?',
       whereArgs: [id],
@@ -63,7 +64,7 @@ class CategoryRepository implements CrudRepository<Category> {
   @override
   Future<void> delete(String id) async {
     await _database!.delete(
-      'categories',
+      tableName,
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -71,6 +72,6 @@ class CategoryRepository implements CrudRepository<Category> {
   
   @override
   Future<void> deleteAll() async {
-    await _database!.delete('categories');
+    await _database!.delete(tableName);
   }
 }

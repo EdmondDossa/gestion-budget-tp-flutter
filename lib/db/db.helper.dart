@@ -27,14 +27,14 @@ class DBHelper {
 
   Future _onCreate(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE categories (
+      CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nom TEXT NOT NULL
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE budgets (
+      CREATE TABLE IF NOT EXISTS budgets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         periodicite TEXT UNIQUE CHECK (periodicite IN ('hebdomadaire', 'mensuel', 'trimestriel', 'annuel')),
         montant REAL NOT NULL,
@@ -44,7 +44,7 @@ class DBHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE depenses (
+      CREATE TABLE IF NOT EXISTS depenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL,
         categorie_id INTEGER,
@@ -56,7 +56,7 @@ class DBHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE revenus (
+      CREATE TABLE IF NOT EXISTS revenus (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL,
         montant REAL NOT NULL,

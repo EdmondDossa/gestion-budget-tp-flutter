@@ -83,14 +83,11 @@ class _AppState extends State<App> {
       theme: appThemes[AppTheme.light],
       home: Scaffold(
         appBar: AppBar(
-          title: const Text(appName),
-          centerTitle: true,
-          backgroundColor: const Color(0xFF2962FF),
           actions: [
             IconButton(
-              icon: const Icon(Icons.settings),
+              icon: const Icon(Icons.notifications),
               onPressed: () {
-                // Handle settings action
+                // Handle notifications action
               },
             ),
           ],

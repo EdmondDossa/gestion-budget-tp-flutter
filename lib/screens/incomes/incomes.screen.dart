@@ -10,9 +10,6 @@ class IncomesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(title),
-      ),
       body: const Center(
         child: Text('Incomes Screen'),
       ),

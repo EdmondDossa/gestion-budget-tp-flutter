@@ -1,8 +1,9 @@
-abstract class CrudRepository<T> {
+abstract class CrudRepository<K, T> {
   Future<List<T>> getAll();
-  Future<T?> getById(String id);
+  Future<T?> getById(K id);
   Future<void> create(T item);
-  Future<void> update(String id, T item);
-  Future<void> delete(String id);
+  Future<void> update(K id, T item);
+  Future<void> delete(K id);
   Future<void> deleteAll();
+  Future<void> save(T item);
 }

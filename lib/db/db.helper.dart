@@ -18,51 +18,55 @@ class DBHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'budgetti.db');
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
+    return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom TEXT NOT NULL
-      )
-    ''');
+    await db.transaction((txn) async {
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS categories (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
 
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS budgets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        periodicite TEXT UNIQUE CHECK (periodicite IN ('hebdomadaire', 'mensuel', 'trimestriel', 'annuel')),
-        montant REAL NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )
-    ''');
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS budgets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          frequency TEXT NOT NULL CHECK (frequency IN ('weekly', 'monthly', 'quarterly', 'yearly')),
+          amount REAL NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
 
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS depenses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL,
-        categorie_id INTEGER,
-        montant REAL NOT NULL,
-        libelle TEXT NOT NULL,
-        observation TEXT,
-        FOREIGN KEY (categorie_id) REFERENCES categories(id)
-      )
-    ''');
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS expenses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL,
+          category_id INTEGER,
+          amount REAL NOT NULL,
+          label TEXT NOT NULL,
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (category_id) REFERENCES categories(id)
+        )
+      ''');
 
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS revenus (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL,
-        montant REAL NOT NULL,
-        libelle TEXT NOT NULL,
-        observation TEXT
-      )
-    ''');
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS incomes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL,
+          amount REAL NOT NULL,
+          label TEXT NOT NULL,
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+    });
   }
 }

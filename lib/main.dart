@@ -1,23 +1,9 @@
-import 'package:budgetti/screens/home.dart';
 import 'package:flutter/material.dart';
+
+import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mon Budget',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2962FF)),
-      ),
-      home: const HomePage(),
-    );
-  }
+  await initApp(); // Initialize the app
+  runApp(const App());
 }

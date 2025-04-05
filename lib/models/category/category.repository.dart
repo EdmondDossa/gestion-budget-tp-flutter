@@ -5,7 +5,7 @@ import 'package:budgetti/db/db.helper.dart';
 import 'package:budgetti/models/category/category.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-class CategoryRepository implements CrudRepository<Category> {
+class CategoryRepository implements CrudRepository<int, Category> {
   Database? _database;
   static const String tableName = 'categories';
 
@@ -32,7 +32,7 @@ class CategoryRepository implements CrudRepository<Category> {
   }
 
   @override
-  Future<Category?> getById(String id) async {
+  Future<Category?> getById(int id) async {
     final List<Map<String, dynamic>> maps = await _database!.query(
       tableName,
       where: 'id = ?',
@@ -52,7 +52,7 @@ class CategoryRepository implements CrudRepository<Category> {
   }
 
   @override
-  Future<void> update(String id, Category category) async {
+  Future<void> update(int id, Category category) async {
     await _database!.update(
       tableName,
       category.toMap(),
@@ -62,7 +62,7 @@ class CategoryRepository implements CrudRepository<Category> {
   }
 
   @override
-  Future<void> delete(String id) async {
+  Future<void> delete(int id) async {
     await _database!.delete(tableName, where: 'id = ?', whereArgs: [id]);
   }
 
@@ -71,6 +71,7 @@ class CategoryRepository implements CrudRepository<Category> {
     await _database!.delete(tableName);
   }
 
+  @override
   Future<void> save(Category category) async {
     if (category.id == null) {
       final newCategory = Category.create(
@@ -78,7 +79,7 @@ class CategoryRepository implements CrudRepository<Category> {
         description: category.description,
       );
 
-      await _database!.insert(tableName, newCategory.toMap());
+      await create(newCategory);
     } else {
       final updatedCategory = Category.update(
         id: category.id!,
@@ -86,12 +87,7 @@ class CategoryRepository implements CrudRepository<Category> {
         description: category.description,
       );
 
-      await _database!.update(
-        tableName,
-        updatedCategory.toMap(),
-        where: 'id = ?',
-        whereArgs: [category.id],
-      );
+      await update(category.id!, updatedCategory);
     }
   }
 }

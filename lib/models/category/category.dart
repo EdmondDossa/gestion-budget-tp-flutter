@@ -40,8 +40,8 @@ class Category {
       id: map['id'],
       name: map['name'],
       description: map['description'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      createdAt: DateTime.tryParse(map['created_at']),
+      updatedAt: DateTime.tryParse(map['updated_at']),
     );
   }
 

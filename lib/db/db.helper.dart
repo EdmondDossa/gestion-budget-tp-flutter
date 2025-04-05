@@ -27,6 +27,7 @@ class DBHelper {
         CREATE TABLE IF NOT EXISTS categories (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
+          description TEXT,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
         )
@@ -35,7 +36,9 @@ class DBHelper {
       await txn.execute('''
         CREATE TABLE IF NOT EXISTS budgets (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          frequency TEXT NOT NULL CHECK (frequency IN ('weekly', 'monthly', 'quarterly', 'yearly')),
+          name TEXT NOT NULL,
+          description TEXT,
+          periodicity TEXT NOT NULL CHECK (periodicity IN ('weekly', 'monthly', 'trimesterly', 'yearly')),
           amount REAL NOT NULL,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL

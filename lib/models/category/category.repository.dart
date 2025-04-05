@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:budgetti/db/crud.repository.dart';
 import 'package:budgetti/db/db.helper.dart';
-import 'package:budgetti/models/category/category.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'category.dart'; 
 
-class CategoryRepository implements CrudRepository<int, Category> {
+final class CategoryRepository implements CrudRepository<Category, int> {
   Database? _database;
   static const String tableName = 'categories';
 

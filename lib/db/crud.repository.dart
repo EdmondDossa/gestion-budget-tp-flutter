@@ -1,4 +1,4 @@
-abstract class CrudRepository<K, T> {
+abstract class CrudRepository<T, K> {
   Future<List<T>> getAll();
   Future<T?> getById(K id);
   Future<void> create(T item);

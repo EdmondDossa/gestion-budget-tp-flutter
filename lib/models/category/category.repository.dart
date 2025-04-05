@@ -10,11 +10,11 @@ class CategoryRepository implements CrudRepository<Category> {
   static const String tableName = 'categories';
 
   CategoryRepository() {
-      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        sqfliteFfiInit();
-        databaseFactory = databaseFactoryFfi;
-      }
-    
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
     _initializeDatabase();
   }
 
@@ -63,15 +63,35 @@ class CategoryRepository implements CrudRepository<Category> {
 
   @override
   Future<void> delete(String id) async {
-    await _database!.delete(
-      tableName,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await _database!.delete(tableName, where: 'id = ?', whereArgs: [id]);
   }
-  
+
   @override
   Future<void> deleteAll() async {
     await _database!.delete(tableName);
+  }
+
+  Future<void> save(Category category) async {
+    if (category.id == null) {
+      final newCategory = Category.create(
+        name: category.name,
+        description: category.description,
+      );
+
+      await _database!.insert(tableName, newCategory.toMap());
+    } else {
+      final updatedCategory = Category.update(
+        id: category.id!,
+        name: category.name,
+        description: category.description,
+      );
+
+      await _database!.update(
+        tableName,
+        updatedCategory.toMap(),
+        where: 'id = ?',
+        whereArgs: [category.id],
+      );
+    }
   }
 }

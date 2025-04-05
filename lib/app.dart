@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'screens/categories/categories.screen.dart';
 import 'screens/dashboard/dashboard.screen.dart';
 import 'screens/expenses/expenses.screen.dart';
+import 'screens/budgets/budgets.screen.dart';
 import 'screens/incomes/incomes.screen.dart';
 
+import 'widgets/custom_navigation_bar.dart';
+
+import 'app.themes.dart';
 import 'app.constants.dart';
 
 Future<void> initApp() async {
@@ -20,13 +24,42 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  int _selectedIndex = 0;
+  int _currentIndex = 0;
 
   final List<Widget> _screens = const [
     DashboardScreen(),
-    ExpensesScreen(),
     IncomesScreen(),
+    ExpensesScreen(),
     CategoriesScreen(),
+    BudgetsScreen(),
+  ];
+
+  final List<BottomNavigationBarItem> _bottomNavBarItems = [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.dashboard_outlined),
+      activeIcon: Icon(Icons.dashboard),
+      label: DashboardScreen.title,
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.monetization_on_outlined),
+      activeIcon: Icon(Icons.monetization_on),
+      label: IncomesScreen.title,
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.receipt_long_outlined),
+      activeIcon: Icon(Icons.receipt_long),
+      label: ExpensesScreen.title,
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.category_outlined),
+      activeIcon: Icon(Icons.category),
+      label: CategoriesScreen.title,
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.pie_chart_outline_outlined),
+      activeIcon: Icon(Icons.pie_chart),
+      label: BudgetsScreen.title,
+    ),
   ];
 
   @override
@@ -36,7 +69,7 @@ class _AppState extends State<App> {
 
   void _onTap(int index) {
     setState(() {
-      _selectedIndex = index;
+      _currentIndex = index;
     });
   }
 
@@ -46,67 +79,27 @@ class _AppState extends State<App> {
       title: appName,
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
-      darkTheme: ThemeData.dark(useMaterial3: true),
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2962FF)),
-      ),
+      darkTheme: appThemes[AppTheme.dark],
+      theme: appThemes[AppTheme.light],
       home: Scaffold(
-        body: IndexedStack(index: _selectedIndex, children: _screens),
-        bottomNavigationBar: Container(
-          height: 80,
-          padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10,
-                offset: Offset(0, -2),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+        appBar: AppBar(
+          title: const Text(appName),
+          centerTitle: true,
+          backgroundColor: const Color(0xFF2962FF),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                // Handle settings action
+              },
             ),
-            child: BottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: _onTap,
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.white,
-              selectedItemColor: const Color(0xFF2962FF),
-              unselectedItemColor: Colors.grey,
-              selectedFontSize: 15,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w400,
-              ),
-              unselectedFontSize: 12,
-              showUnselectedLabels: true,
-              iconSize: 30,
-              elevation: 0,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard_outlined),
-                  activeIcon: Icon(Icons.dashboard),
-                  label: 'Dashboard',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.money_off),
-                  label: 'Dépenses',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.attach_money),
-                  label: 'Revenus',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.category),
-                  label: 'Catégories',
-                ),
-              ],
-            ),
-          ),
+          ],
+        ),
+        body: IndexedStack(index: _currentIndex, children: _screens),
+        bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTap,
+          items: _bottomNavBarItems,
         ),
       ),
     );

@@ -26,6 +26,7 @@ class Budget {
     required double amount,
   }) {
     final now = DateTime.now();
+    
     return Budget(
       name: name,
       description: description,
@@ -44,6 +45,7 @@ class Budget {
     required double amount,
   }) {
     final now = DateTime.now();
+    
     return Budget(
       id: id,
       name: name,

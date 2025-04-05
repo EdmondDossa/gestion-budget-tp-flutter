@@ -6,8 +6,6 @@ import 'screens/expenses/expenses.screen.dart';
 import 'screens/budgets/budgets.screen.dart';
 import 'screens/incomes/incomes.screen.dart';
 
-import 'widgets/custom_navigation_bar.dart';
-
 import 'app.themes.dart';
 import 'app.constants.dart';
 
@@ -93,7 +91,7 @@ class _AppState extends State<App> {
           ],
         ),
         body: IndexedStack(index: _currentIndex, children: _screens),
-        bottomNavigationBar: CustomBottomNavigationBar(
+        bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: _onTap,
           items: _bottomNavBarItems,

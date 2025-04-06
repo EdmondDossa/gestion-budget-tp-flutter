@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'package:budgetti/models/category.dart';
 import 'package:budgetti/models/category.provider.dart';
@@ -18,122 +19,95 @@ final class CategoriesScreen extends StatefulWidget {
 }
 
 final class _CategoriesScreenState extends State<CategoriesScreen> {
+  
+  CategoryModel? _category;
+
+  CategoryProvider get categoryProvider => Provider.of<CategoryProvider>(context, listen: false);
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-      // ignore: use_build_context_synchronously
-      Provider.of<CategoryProvider>(context, listen: false).fetchAll();
+      categoryProvider.fetchAll();
     });
   }
 
-  void showCategoryForm() {
-    showModalBottomSheet(
-      useSafeArea: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-        side: BorderSide(color: Theme.of(context).primaryColor, width: 3),
-      ),
-      context: context,
-      builder: (context) {
-        return CategoryForm(
-          category: _category,
-          onSubmit: (categroy) {
-            if (_category == null) {
-              createCategory(categroy);
-            } else {
-              editCategory(categroy);
-            }
-            Navigator.pop(context);
-          },
-        );
-      },
-    );
-  }
-
-  CategoryModel? _category;
-
-  void createCategory(CategoryModel category) {
-    final provider = Provider.of<CategoryProvider>(context, listen: false);
-    provider.add(category);
-  }
-
-  void editCategory(CategoryModel category) {
+  void handleCreateCategory() {
     setState(() {
       _category = null;
     });
-    final provider = Provider.of<CategoryProvider>(context, listen: false);
-    provider.update(category);
-  }
 
-  void deleteCategory(CategoryModel category) {
-    final provider = Provider.of<CategoryProvider>(context, listen: false);
-    provider.remove(category);
-  }
-
-  // ignore: non_constant_identifier_names
-  Future<dynamic> ShowDeleteAlert(
-    BuildContext context,
-    CategoryModel category,
-  ) {
-    return showDialog(
+    showShadDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Supprimer la catégorie'),
-          content: const Text(
-            'Êtes-vous sûr de vouloir supprimer la catégorie ?',
+      builder: (context) => ShadDialog(
+        padding: const EdgeInsets.all(16),
+        child: CategoryForm(
+          category: _category,
+          onSubmit: (category) {
+            categoryProvider.add(category);
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  void handleEditCategory(CategoryModel category) {
+    setState(() {
+      _category = category;
+    });
+
+    showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog(
+        padding: const EdgeInsets.all(16),
+        child: CategoryForm(
+          category: _category,
+          onSubmit: (category) {
+            categoryProvider.update(category);
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  void handleDeleteCategory(CategoryModel category) {
+    setState(() {
+      _category = category;
+    });
+
+    showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog.alert(
+        title: const Text('Êtes-vous sûr de vouloir supprimer cette catégorie ?'),
+        description: Padding(
+          padding: EdgeInsets.only(bottom: 8), 
+          child: Text('Cette action est irréversible et supprimera toutes les transactions associées à cette catégorie.')
+        ),
+        actions: [
+          ShadButton.outline(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
           ),
-          actions: [
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(
-                  Theme.of(context).primaryColor,
-                ),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                padding: WidgetStateProperty.all(
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                ),
-              ),
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.error,
-                ),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                padding: WidgetStateProperty.all(
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                ),
-              ),
-              onPressed: () {
-                deleteCategory(category);
-                Navigator.pop(context);
-              },
-              child: const Text('Supprimer'),
-            ),
-          ],
-        );
-      },
+          ShadButton.destructive(
+            onPressed: () {
+              categoryProvider.delete(category);
+              Navigator.pop(context);
+            },
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text(CategoriesScreen.title)),
+      appBar: AppBar(title: Text(CategoriesScreen.title, style: theme.textTheme.h4), centerTitle: false,),
       body: SafeArea(
         minimum: const EdgeInsets.symmetric(horizontal: 10),
         child: Consumer<CategoryProvider>(
@@ -144,18 +118,21 @@ final class _CategoriesScreenState extends State<CategoriesScreen> {
 
             if (categoryProvider.hasError) {
               return Center(
-                child: Text(
-                  categoryProvider.error,
-                  style: const TextStyle(color: Colors.red),
-                ),
+                child: Text(categoryProvider.error, style: theme.textTheme.h4),
               );
             }
 
             if (categoryProvider.categories.isEmpty) {
-              return const Center(
-                child: Text(
-                  'Pas de catégories précédemment créées',
-                  style: TextStyle(fontSize: 18),
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Image(image: AssetImage('assets/images/categories_empty.png')),
+                    const SizedBox(height: 16),
+                    Text('Aucune catégorie disponible', style: theme.textTheme.h4),
+                    const SizedBox(height: 8),
+                    Text('Créez une nouvelle catégorie pour commencer.', style: theme.textTheme.muted),
+                  ],
                 ),
               );
             }
@@ -164,19 +141,10 @@ final class _CategoriesScreenState extends State<CategoriesScreen> {
               itemCount: categoryProvider.categories.length,
               itemBuilder: (context, index) {
                 final category = categoryProvider.categories[index];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _category = category;
-                    });
-                    showCategoryForm();
-                  },
-                  child: CategoryCard(
-                    category: category,
-                    onDelete: () {
-                      ShowDeleteAlert(context, category);
-                    },
-                  ),
+                return CategoryCard(
+                  category: category,
+                  onEdit: () => handleEditCategory(category),
+                  onDelete: () => handleDeleteCategory(category),
                 );
               },
             );
@@ -184,12 +152,7 @@ final class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _category = null;
-          });
-          showCategoryForm();
-        },
+        onPressed: () => handleCreateCategory(),
         tooltip: 'Créer une catégorie',
         child: const Icon(Icons.add),
       ),

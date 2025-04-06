@@ -1,53 +1,44 @@
 import 'package:budgetti/models/category.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 final class CategoryCard extends StatelessWidget {
-  const CategoryCard({super.key, required this.category, this.onDelete});
+  const CategoryCard({super.key, required this.category, this.onEdit, this.onDelete});
 
   final CategoryModel category;
+  final Function? onEdit;
   final Function? onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: theme.radius,
+          border: Border.all(color: theme.colorScheme.border),
+        ),
         child: Row(
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    category.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text(category.name, style: theme.textTheme.small),
                   const SizedBox(height: 4),
-                  Text(
-                    'Description: ${category.description ?? "Pas de description"}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  Text(category.description ?? 'Pas de description', style: theme.textTheme.muted),
                 ],
               ),
             ),
-            GestureDetector(
-              onTap: () => onDelete!(),
-              child: Container(
-                decoration: BoxDecoration(
-                  // ignore: deprecated_member_use
-                  color: Colors.red.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.delete_outline_rounded,
-                  size: 50,
-                  color: Colors.white,
-                ),
-              ),
+            ShadIconButton(
+              icon: const Icon(LucideIcons.pen),
+              onPressed: () => onEdit!(),
+            ),
+            ShadIconButton.destructive(
+              icon: const Icon(LucideIcons.trash),
+              onPressed: () => onDelete!(),
             ),
           ],
         ),

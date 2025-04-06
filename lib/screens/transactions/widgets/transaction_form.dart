@@ -100,7 +100,7 @@ class _TransactionFormState extends State<TransactionForm> {
           controller: _amountController,
           keyboardType: TextInputType.number,
           validator: (value) {
-            final amount = double.tryParse(value ?? '');
+            final amount = double.tryParse(value);
             if (amount == null || amount <= 0) {
               return 'Entrez un montant valide';
             }
@@ -114,6 +114,7 @@ class _TransactionFormState extends State<TransactionForm> {
         ),
         const SizedBox(height: 16),
         ShadButton(
+          width: double.infinity,
           onPressed: _handleSubmit,
           child: Text(isEditMode ? 'Mettre à jour' : 'Enregistrer'),
         ),
@@ -143,6 +144,14 @@ class _TransactionFormState extends State<TransactionForm> {
                 ShadTab(
                   value: TransactionTypeEnum.income,
                   content: ShadCard(
+                    border: Border.all(width: 0, color: Colors.transparent),
+                    shadows: [
+                      BoxShadow(
+                        color: Colors.transparent,
+                        blurRadius: 0,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
                     title: Text(
                       isEditMode ? 'Éditer un revenu' : 'Ajouter un revenu',
                     ),
@@ -159,6 +168,14 @@ class _TransactionFormState extends State<TransactionForm> {
                 ShadTab(
                   value: TransactionTypeEnum.expense,
                   content: ShadCard(
+                    border: Border.all(width: 0, color: Colors.transparent),
+                    shadows: [
+                      BoxShadow(
+                        color: Colors.transparent,
+                        blurRadius: 0,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
                     title: Text(
                       isEditMode ? 'Éditer une dépense' : 'Ajouter une dépense',
                     ),

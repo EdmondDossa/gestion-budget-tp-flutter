@@ -8,8 +8,6 @@ import 'package:budgetti/utils/nanoid.dart';
 
 import 'category.dart';
 import 'category.repository.dart';
-import 'currency.dart';
-import 'currency.repository.dart';
 
 import 'transaction.dart';
 
@@ -34,7 +32,6 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
       updated_at TEXT NOT NULL,
       deleted_at TEXT,
 
-      FOREIGN KEY (currency_code) REFERENCES ${CurrencyRepository.tableName}(code) ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY (category_id) REFERENCES ${CategoryRepository.tableName}(id) ON DELETE CASCADE ON UPDATE CASCADE
     )
   ''';
@@ -62,6 +59,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<List<TransactionModel>> findAll({bool includeDeleted = false}) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     final maps = await _database!.query(
       tableName,
       where: includeDeleted ? null : 'deleted_at IS NULL',
@@ -71,6 +72,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<List<TransactionModel>> findAllDeleted() async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     final maps = await _database!.query(
       tableName,
       where: 'deleted_at IS NOT NULL',
@@ -80,6 +85,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<TransactionModel?> findById(String id, {bool includeDeleted = false}) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     final maps = await _database!.query(
       tableName,
       where: includeDeleted ? 'id = ?' : 'id = ? AND deleted_at IS NULL',
@@ -90,6 +99,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> create(TransactionModel transaction) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     return await _database!.insert(tableName, {
       'id': NanoidUtils.generate(prefix: identifierPrefix),
       ...transaction.toMap(),
@@ -100,6 +113,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> update(TransactionModel transaction) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     return await _database!.update(
       tableName,
       {
@@ -113,6 +130,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> delete(TransactionModel transaction) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     return await _database!.delete(
       tableName,
       where: 'id = ?',
@@ -122,6 +143,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> softDelete(TransactionModel transaction) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     return await _database!.update(
       tableName,
       {'deleted_at': DateTime.now().toIso8601String()},
@@ -132,6 +157,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> restore(TransactionModel transaction) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     return await _database!.update(
       tableName,
       {'deleted_at': null},
@@ -141,6 +170,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
   }
 
   Future<List<TransactionModel>> findByType(TransactionTypeEnum type) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     final maps = await _database!.query(
       tableName,
       where: 'type = ?',
@@ -150,6 +183,10 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
   }
 
   Future<List<TransactionModel>> findByCategory(CategoryModel category) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     final maps = await _database!.query(
       tableName,
       where: 'category_id = ?',
@@ -158,16 +195,24 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
     return maps.map((map) => TransactionModel.fromMap(map)).toList();
   }
 
-  Future<List<TransactionModel>> findByCurrency(CurrencyModel currency) async {
+  Future<List<TransactionModel>> findByCurrency(String currencyCode) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     final maps = await _database!.query(
       tableName,
       where: 'currency_code = ?',
-      whereArgs: [currency.code],
+      whereArgs: [currencyCode],
     );
     return maps.map((map) => TransactionModel.fromMap(map)).toList();
   }
 
   Future<List<TransactionModel>> findByDateRange(DateTime startDate, DateTime endDate) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
     final maps = await _database!.query(
       tableName,
       where: 'timestamp BETWEEN ? AND ?',

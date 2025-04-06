@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 
 import 'package:budgetti/models/budget.dart';
 import 'package:budgetti/models/budget.provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
-import 'widgets/budget_form.dart';
 import 'widgets/budget_card.dart';
+import 'widgets/budget_form.dart';
 
 final class BudgetsScreen extends StatefulWidget {
-
   static const String title = 'Budgets';
   static const String routeName = '/budgets';
 
@@ -19,87 +19,130 @@ final class BudgetsScreen extends StatefulWidget {
 }
 
 final class _BudgetsScreenState extends State<BudgetsScreen> {
+  BudgetModel? _budget;
+
+  BudgetProvider get budgetProvider => Provider.of<BudgetProvider>(context, listen: false);
+
   @override
   void initState() {
     super.initState();
-    // ignore: use_build_context_synchronously
-    Future.microtask(() => Provider.of<BudgetProvider>(context, listen: false).fetchAll());
+    Future.microtask(() {
+      budgetProvider.fetchAll();
+    });
   }
 
-  void showBudgetForm() {
-    showModalBottomSheet(
-      useSafeArea: true,
-      shape: Border(
-        top: BorderSide(
-          color: Theme.of(context).primaryColor,
-          width: 5,
+  void handleCreateBudget() {
+    if (budgetProvider.budgets.length >= 4) {
+      showShadDialog(
+        context: context,
+        builder: (context) => ShadDialog.alert(
+          title: const Text('Maximum budget limit reached'),
+          description: const Text('You can only create up to 4 budgets.'),
         ),
-      ),
+      );
+      return;
+    }
+
+    setState(() {
+      _budget = null;
+    });
+
+    showShadDialog(
       context: context,
-      builder: (context) {
-        return BudgetForm(
-          onSubmit: (name, description, amount, periodicity) {
-            final budget = BudgetModel.create(
-              name: name,
-              description: description,
-              periodicity: periodicity,
-              amount: amount,
-              currencyCode: 'XOF',
-              createdAt: DateTime.now()
-            );
-            createBudget(budget);
+      builder: (context) => ShadDialog(
+        padding: const EdgeInsets.all(16),
+        child: BudgetForm(
+          budget: _budget,
+          onSubmit: (budget) {
+            budgetProvider.add(budget);
             Navigator.pop(context);
           },
-        );
-      },
+        ),
+      ),
     );
   }
 
-  void createBudget(BudgetModel budget) {
-    final budgetProvider = Provider.of<BudgetProvider>(context, listen: false);
-    budgetProvider.add(budget);
+  void handleEditBudget(BudgetModel budget) {
+    setState(() {
+      _budget = budget;
+    });
+
+    showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog(
+        padding: const EdgeInsets.all(16),
+        child: BudgetForm(
+          budget: _budget,
+          onSubmit: (budget) {
+            budgetProvider.update(budget);
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
   }
 
-  void editBudget(BudgetModel budget) {
-    final budgetProvider = Provider.of<BudgetProvider>(context, listen: false);
-    budgetProvider.update(budget);
-  }
+  void handleDeleteBudget(BudgetModel budget) {
+    setState(() {
+      _budget = budget;
+    });
 
-  void deleteBudget(BudgetModel budget) {
-    final budgetProvider = Provider.of<BudgetProvider>(context, listen: false);
-    budgetProvider.remove(budget);
+    showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog.alert(
+        title: const Text('Are you sure you want to delete this budget?'),
+        description: Padding(
+          padding: EdgeInsets.only(bottom: 8), 
+          child: Text('This action is irreversible and will delete all associated transactions.'),
+        ),
+        actions: [
+          ShadButton.outline(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ShadButton.destructive(
+            onPressed: () {
+              budgetProvider.delete(budget);
+              Navigator.pop(context);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
-    Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
 
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text(BudgetsScreen.title),
-        ),
-        body: SafeArea(
-          minimum: const EdgeInsets.only(left: 10, right: 10),
-          child: Consumer<BudgetProvider>(builder: (context, budgetProvider, child) {
+    return Scaffold(
+      appBar: AppBar(title: Text(BudgetsScreen.title, style: theme.textTheme.h4), centerTitle: false),
+      body: SafeArea(
+        minimum: const EdgeInsets.symmetric(horizontal: 10),
+        child: Consumer<BudgetProvider>(
+          builder: (context, budgetProvider, child) {
             if (budgetProvider.isLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (budgetProvider.hasError) {
               return Center(
-                child: Text(
-                  budgetProvider.error,
-                  style: const TextStyle(color: Colors.red),
-                ),
+                child: Text(budgetProvider.error, style: theme.textTheme.h4),
               );
             }
 
             if (budgetProvider.budgets.isEmpty) {
-              return const Center(
-                child: Text(
-                  'No budgets available',
-                  style: TextStyle(fontSize: 18),
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Image(image: AssetImage('assets/images/budgets_empty.png')),
+                    const SizedBox(height: 16),
+                    Text('No budgets available', style: theme.textTheme.h4),
+                    const SizedBox(height: 8),
+                    Text('Create a new budget to get started.', style: theme.textTheme.muted),
+                  ],
                 ),
               );
             }
@@ -108,19 +151,21 @@ final class _BudgetsScreenState extends State<BudgetsScreen> {
               itemCount: budgetProvider.budgets.length,
               itemBuilder: (context, index) {
                 final budget = budgetProvider.budgets[index];
-                return GestureDetector(
-                  onTap: () => editBudget(budget),
-                  child: BudgetCard(budget: budget),
+                return BudgetCard(
+                  budget: budget,
+                  onEdit: () => handleEditBudget(budget),
+                  onDelete: () => handleDeleteBudget(budget),
                 );
-              }
+              },
             );
-          }),
+          },
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: showBudgetForm,
-          tooltip: 'Create a new budget',
-          child: const Icon(Icons.add),
-        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => handleCreateBudget(),
+        tooltip: 'Create a budget',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

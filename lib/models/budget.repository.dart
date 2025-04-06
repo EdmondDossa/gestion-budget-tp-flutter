@@ -1,10 +1,11 @@
+import 'dart:io';
 import 'package:budgetti/db/db.helper.dart';
 import 'package:budgetti/db/crud.repository.dart';
 import 'package:budgetti/utils/nanoid.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'budget.dart';
-
-import 'currency.repository.dart';
 
 final class BudgetRepository implements CrudRepository<BudgetModel> {
   static const String tableName = 'budgets';
@@ -13,17 +14,14 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
   static String createTableQuery = '''
     CREATE TABLE IF NOT EXISTS $tableName (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      description TEXT,
       periodicity INTEGER UNIQUE CHECK (periodicity IN (${BudgetPeriodicityEnum.weekly.id}, ${BudgetPeriodicityEnum.monthly.id}, ${BudgetPeriodicityEnum.trimesterly.id}, ${BudgetPeriodicityEnum.yearly.id})),
       amount REAL NOT NULL,
       currency_code TEXT NOT NULL,
+      observation TEXT,
 
       created_at TEXT NOT NULL,
       updated_at TEXT,
-      deleted_at TEXT,
-
-      FOREIGN KEY (currency_code) REFERENCES ${CurrencyRepository.tableName}(code) ON DELETE CASCADE ON UPDATE CASCADE
+      deleted_at TEXT
     )
   ''';
 
@@ -32,11 +30,28 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
     CREATE INDEX IF NOT EXISTS idx_${tableName}_deleted_at ON $tableName (deleted_at);
   ''';
 
+  Database? _database;
+
+  BudgetRepository() {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
+    _initializeDatabase();
+  }
+
+  Future<void> _initializeDatabase() async {
+    _database = await DBHelper().database;
+  }
+
   @override
   Future<List<BudgetModel>> findAll({bool includeDeleted = false}) async {
-    final db = await DBHelper().database;
+    if (_database == null) {
+      await _initializeDatabase();
+    }
 
-    final maps = await db.query(
+    final maps = await _database!.query(
       tableName,
       where: includeDeleted ? null : 'deleted_at IS NULL',
     );
@@ -45,9 +60,11 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
 
   @override
   Future<List<BudgetModel>> findAllDeleted() async {
-    final db = await DBHelper().database;
+    if (_database == null) {
+      await _initializeDatabase();
+    }
 
-    final maps = await db.query(
+    final maps = await _database!.query(
       tableName,
       where: 'deleted_at IS NOT NULL',
     );
@@ -56,9 +73,11 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
 
   @override
   Future<BudgetModel?> findById(String id, {bool includeDeleted = false}) async {
-    final db = await DBHelper().database;
+    if (_database == null) {
+      await _initializeDatabase();
+    }
 
-    final maps = await db.query(
+    final maps = await _database!.query(
       tableName,
       where: includeDeleted ? 'id = ?' : 'id = ? AND deleted_at IS NULL',
       whereArgs: [id],
@@ -68,24 +87,40 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
 
   @override
   Future<int> create(BudgetModel budget) async {
-    final db = await DBHelper().database;
+    if (_database == null) {
+      await _initializeDatabase();
+    }
 
-    return await db.insert(
-      tableName,
-      {
-        'id': NanoidUtils.generate(prefix: identifierPrefix),
-        ...budget.toMap()
+    try {
+      return await _database!.insert(
+        tableName,
+        {
+          'id': NanoidUtils.generate(prefix: identifierPrefix),
+          ...budget.toMap(),
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) {
+        throw Exception('A budget with this periodicity already exists.');
       }
-    );
+      rethrow;
+    }
   }
 
   @override
   Future<int> update(BudgetModel budget) async {
-    final db = await DBHelper().database;
+    if (_database == null) {
+      await _initializeDatabase();
+    }
 
-    return await db.update(
+    return await _database!.update(
       tableName,
-      budget.toMap(),
+      {
+        ...budget.toMap(),
+        'updated_at': DateTime.now().toIso8601String(),
+      },
       where: 'id = ?',
       whereArgs: [budget.id],
     );
@@ -93,25 +128,29 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
 
   @override
   Future<int> delete(BudgetModel budget) async {
-    final db = await DBHelper().database;
+    if (_database == null) {
+      await _initializeDatabase();
+    }
 
-    return await db.delete(
+    return await _database!.delete(
       tableName,
       where: 'id = ?',
-      whereArgs: [budget.id]
+      whereArgs: [budget.id],
     );
   }
 
   @override
   Future<int> softDelete(BudgetModel budget) async {
-    final db = await DBHelper().database;
-    final String nowIso8601 = DateTime.now().toIso8601String();
+    if (_database == null) {
+      await _initializeDatabase();
+    }
 
-    return await db.update(
+    final nowIso8601 = DateTime.now().toIso8601String();
+    return await _database!.update(
       tableName,
       {
         'deleted_at': nowIso8601,
-        'updated_at': nowIso8601
+        'updated_at': nowIso8601,
       },
       where: 'id = ?',
       whereArgs: [budget.id],
@@ -120,16 +159,18 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
 
   @override
   Future<int> restore(BudgetModel budget) async {
-    final db = await DBHelper().database;
-    return await db.update(
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+
+    return await _database!.update(
       tableName,
       {
         'deleted_at': null,
-        'updated_at': DateTime.now().toIso8601String()
+        'updated_at': DateTime.now().toIso8601String(),
       },
       where: 'id = ?',
       whereArgs: [budget.id],
     );
   }
-
 }

@@ -1,4 +1,5 @@
 import 'package:budgetti/models/budget.provider.dart';
+import 'package:budgetti/models/category.provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +25,6 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-
   final List<Widget> _screens = const [
     DashboardMainScreen(),
     IncomesScreen(),
@@ -79,8 +79,9 @@ class _AppState extends State<App> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
       ],
-      child:  MaterialApp(
+      child: MaterialApp(
         title: appName,
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.system,
@@ -94,7 +95,7 @@ class _AppState extends State<App> {
             items: _bottomNavBarItems,
           ),
         ),
-      )
+      ),
     );
   }
 }

@@ -19,14 +19,14 @@ final class CategoryRepository implements CrudRepository<CategoryModel> {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       deleted_at TEXT
-    )
+    );
   ''';
 
   static const String createIndexesQuery = '''
     CREATE INDEX IF NOT EXISTS idx_${tableName}_deleted_at ON $tableName (deleted_at);
   ''';
 
-  Database? _database;
+  static Database? _database;
 
   CategoryRepository() {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -43,6 +43,9 @@ final class CategoryRepository implements CrudRepository<CategoryModel> {
 
   @override
   Future<List<CategoryModel>> findAll({bool includeDeleted = false}) async {
+    if (_database == null) {
+      await _initializeDatabase();
+    }
     final maps = await _database!.query(
       tableName,
       where: includeDeleted ? null : 'deleted_at IS NULL',
@@ -60,7 +63,10 @@ final class CategoryRepository implements CrudRepository<CategoryModel> {
   }
 
   @override
-  Future<CategoryModel?> findById(String id, {bool includeDeleted = false}) async {
+  Future<CategoryModel?> findById(
+    String id, {
+    bool includeDeleted = false,
+  }) async {
     final maps = await _database!.query(
       tableName,
       where: includeDeleted ? 'id = ?' : 'id = ? AND deleted_at IS NULL',
@@ -71,25 +77,21 @@ final class CategoryRepository implements CrudRepository<CategoryModel> {
 
   @override
   Future<int> create(CategoryModel category) async {
-    return await _database!.insert(
-      tableName,
-      {
-        'id': NanoidUtils.generate(prefix: identifierPrefix),
-        ...category.toMap(),
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String()
-      },
-    );
+    if (_database == null) {
+      await _initializeDatabase();
+    }
+    return await _database!.insert(tableName, {
+      ...category.toMap(),
+      'id': NanoidUtils.generate(prefix: identifierPrefix),
+      'updated_at': DateTime.now().toIso8601String(),
+    });
   }
 
   @override
   Future<int> update(CategoryModel category) async {
     return await _database!.update(
       tableName,
-      {
-        ...category.toMap(),
-        'updated_at': DateTime.now().toIso8601String()
-      },
+      {...category.toMap(), 'updated_at': DateTime.now().toIso8601String()},
       where: 'id = ?',
       whereArgs: [category.id],
     );
@@ -109,10 +111,7 @@ final class CategoryRepository implements CrudRepository<CategoryModel> {
     final now = DateTime.now().toIso8601String();
     return await _database!.update(
       tableName,
-      {
-        'deleted_at': now,
-        'updated_at': now
-      },
+      {'deleted_at': now, 'updated_at': now},
       where: 'id = ?',
       whereArgs: [category.id],
     );
@@ -122,10 +121,7 @@ final class CategoryRepository implements CrudRepository<CategoryModel> {
   Future<int> restore(CategoryModel category) async {
     return await _database!.update(
       tableName,
-      {
-        'deleted_at': null,
-        'updated_at': DateTime.now().toIso8601String()
-      },
+      {'deleted_at': null, 'updated_at': DateTime.now().toIso8601String()},
       where: 'id = ?',
       whereArgs: [category.id],
     );

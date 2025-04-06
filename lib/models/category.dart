@@ -33,14 +33,14 @@ class CategoryModel {
     required DateTime createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
-    }) {
+  }) {
     return CategoryModel(
       id: id,
       name: name,
       description: description,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      deletedAt: deletedAt
+      deletedAt: deletedAt,
     );
   }
 
@@ -50,15 +50,15 @@ class CategoryModel {
     String? description,
     required DateTime createdAt,
     DateTime? updatedAt,
-    DateTime? deletedAt
-    }) {
+    DateTime? deletedAt,
+  }) {
     return CategoryModel(
       id: id,
       name: name,
       description: description,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      deletedAt: deletedAt
+      deletedAt: deletedAt,
     );
   }
 
@@ -69,7 +69,7 @@ class CategoryModel {
       description: map['description'],
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: DateTime.tryParse(map['updated_at']),
-      deletedAt: DateTime.tryParse(map['deleted_at']),
+      deletedAt: DateTime.tryParse(map['deleted_at'] ?? ''),
     );
   }
 
@@ -80,8 +80,7 @@ class CategoryModel {
       'description': description,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
-      'deleted_at': deletedAt?.toIso8601String()
+      'deleted_at': deletedAt?.toIso8601String(),
     };
   }
-
 }

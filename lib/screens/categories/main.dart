@@ -19,7 +19,6 @@ final class CategoriesScreen extends StatefulWidget {
 }
 
 final class _CategoriesScreenState extends State<CategoriesScreen> {
-  
   CategoryModel? _category;
 
   CategoryProvider get categoryProvider => Provider.of<CategoryProvider>(context, listen: false);
@@ -81,9 +80,9 @@ final class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (context) => ShadDialog.alert(
         title: const Text('Êtes-vous sûr de vouloir supprimer cette catégorie ?'),
-        description: Padding(
-          padding: EdgeInsets.only(bottom: 8), 
-          child: Text('Cette action est irréversible et supprimera toutes les transactions associées à cette catégorie.')
+        description: const Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text('Cette action est irréversible et supprimera toutes les transactions associées à cette catégorie.'),
         ),
         actions: [
           ShadButton.outline(
@@ -107,7 +106,10 @@ final class _CategoriesScreenState extends State<CategoriesScreen> {
     final theme = ShadTheme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(CategoriesScreen.title, style: theme.textTheme.h4), centerTitle: false,),
+      appBar: AppBar(
+        title: Text(CategoriesScreen.title, style: theme.textTheme.h4),
+        centerTitle: false,
+      ),
       body: SafeArea(
         minimum: const EdgeInsets.symmetric(horizontal: 10),
         child: Consumer<CategoryProvider>(

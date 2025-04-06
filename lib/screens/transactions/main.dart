@@ -78,22 +78,22 @@ final class _TransactionsScreenState extends State<TransactionsScreen> {
     showShadDialog(
       context: context,
       builder: (context) => ShadDialog.alert(
-        title: const Text('Are you sure you want to delete this transaction?'),
+        title: const Text('Êtes-vous sûr de vouloir supprimer cette transaction ?'),
         description: const Padding(
           padding: EdgeInsets.only(bottom: 8),
-          child: Text('This action is irreversible.'),
+          child: Text('Cette action est irréversible.'),
         ),
         actions: [
           ShadButton.outline(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Annuler'),
           ),
           ShadButton.destructive(
             onPressed: () {
               transactionProvider.delete(transaction);
               Navigator.pop(context);
             },
-            child: const Text('Delete'),
+            child: const Text('Supprimer'),
           ),
         ],
       ),
@@ -105,7 +105,7 @@ final class _TransactionsScreenState extends State<TransactionsScreen> {
     final theme = ShadTheme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(TransactionsScreen.title, style: theme.textTheme.h4), centerTitle: false),
+      appBar: AppBar(title: Text('Transactions', style: theme.textTheme.h4), centerTitle: false),
       body: SafeArea(
         minimum: const EdgeInsets.symmetric(horizontal: 10),
         child: Consumer<TransactionProvider>(
@@ -127,9 +127,9 @@ final class _TransactionsScreenState extends State<TransactionsScreen> {
                   children: [
                     const Image(image: AssetImage('assets/images/transactions_empty.png')),
                     const SizedBox(height: 16),
-                    Text('No transactions available', style: theme.textTheme.h4),
+                    Text('Aucune transaction disponible', style: theme.textTheme.h4),
                     const SizedBox(height: 8),
-                    Text('Create a new transaction to get started.', style: theme.textTheme.muted),
+                    Text('Créez une nouvelle transaction pour commencer.', style: theme.textTheme.muted),
                   ],
                 ),
               );
@@ -151,7 +151,7 @@ final class _TransactionsScreenState extends State<TransactionsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => handleCreateTransaction(),
-        tooltip: 'Create a transaction',
+        tooltip: 'Créer une transaction',
         child: const Icon(Icons.add),
       ),
     );

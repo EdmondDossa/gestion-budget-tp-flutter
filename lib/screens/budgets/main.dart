@@ -36,8 +36,8 @@ final class _BudgetsScreenState extends State<BudgetsScreen> {
       showShadDialog(
         context: context,
         builder: (context) => ShadDialog.alert(
-          title: const Text('Maximum budget limit reached'),
-          description: const Text('You can only create up to 4 budgets.'),
+          title: const Text('Limite maximale atteinte'),
+          description: const Text('Vous pouvez créer jusqu’à 4 budgets maximum.'),
         ),
       );
       return;
@@ -90,22 +90,22 @@ final class _BudgetsScreenState extends State<BudgetsScreen> {
     showShadDialog(
       context: context,
       builder: (context) => ShadDialog.alert(
-        title: const Text('Are you sure you want to delete this budget?'),
-        description: Padding(
-          padding: EdgeInsets.only(bottom: 8), 
-          child: Text('This action is irreversible and will delete all associated transactions.'),
+        title: const Text('Supprimer ce budget ?'),
+        description: const Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text('Cette action est irréversible et supprimera toutes les transactions associées à ce budget.'),
         ),
         actions: [
           ShadButton.outline(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Annuler'),
           ),
           ShadButton.destructive(
             onPressed: () {
               budgetProvider.delete(budget);
               Navigator.pop(context);
             },
-            child: const Text('Delete'),
+            child: const Text('Supprimer'),
           ),
         ],
       ),
@@ -117,7 +117,10 @@ final class _BudgetsScreenState extends State<BudgetsScreen> {
     final theme = ShadTheme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(BudgetsScreen.title, style: theme.textTheme.h4), centerTitle: false),
+      appBar: AppBar(
+        title: Text(BudgetsScreen.title, style: theme.textTheme.h4),
+        centerTitle: false,
+      ),
       body: SafeArea(
         minimum: const EdgeInsets.symmetric(horizontal: 10),
         child: Consumer<BudgetProvider>(
@@ -139,9 +142,9 @@ final class _BudgetsScreenState extends State<BudgetsScreen> {
                   children: [
                     const Image(image: AssetImage('assets/images/budgets_empty.png')),
                     const SizedBox(height: 16),
-                    Text('No budgets available', style: theme.textTheme.h4),
+                    Text('Aucun budget disponible', style: theme.textTheme.h4),
                     const SizedBox(height: 8),
-                    Text('Create a new budget to get started.', style: theme.textTheme.muted),
+                    Text('Créez un nouveau budget pour commencer.', style: theme.textTheme.muted),
                   ],
                 ),
               );
@@ -162,8 +165,8 @@ final class _BudgetsScreenState extends State<BudgetsScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => handleCreateBudget(),
-        tooltip: 'Create a budget',
+        onPressed: handleCreateBudget,
+        tooltip: 'Créer un budget',
         child: const Icon(Icons.add),
       ),
     );

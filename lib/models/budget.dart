@@ -4,12 +4,6 @@ final class BudgetModel {
   /// The unique identifier for the budget. 
   final String? id;
 
-  /// The name of the budget.
-  final String name;
-
-  /// A description of the budget.
-  final String? description;
-
   /// The periodicity of the budget, indicating how often it recurs.
   final BudgetPeriodicityEnum periodicity;
 
@@ -18,6 +12,9 @@ final class BudgetModel {
 
   /// The currency in which the budget amount is specified.
   final String currencyCode;
+
+  /// Observations or notes related to the budget.
+  final String? observation;
 
   /// The date and time when the budget was created.
   final DateTime createdAt;
@@ -31,10 +28,9 @@ final class BudgetModel {
   /// Constructor for creating a new budget.
   BudgetModel({
     this.id,
-    required this.name,
-    this.description,
     required this.periodicity,
     required this.amount,
+    this.observation,
     required this.currencyCode,
     required this.createdAt,
     this.updatedAt,
@@ -44,22 +40,20 @@ final class BudgetModel {
   /// Factory methods for creating a new budget or updating an existing one.
   factory BudgetModel.create({
     String? id,
-    required String name,
-    String? description,
     required BudgetPeriodicityEnum periodicity,
     required double amount,
     required String currencyCode,
+    String? observation,
     required DateTime createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
   }) {    
     return BudgetModel(
       id: id,
-      name: name,
-      description: description,
       periodicity: periodicity,
       amount: amount,
       currencyCode: currencyCode,
+      observation: observation,
       createdAt: createdAt,
       updatedAt: updatedAt,
       deletedAt: deletedAt,
@@ -69,22 +63,20 @@ final class BudgetModel {
   /// Factory method for updating an existing budget.
   factory BudgetModel.update({
     required String id,
-    required String name,
-    String? description,
     required BudgetPeriodicityEnum periodicity,
     required double amount,
     required String currencyCode,
+    String? observation,
     required DateTime createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
   }) {    
     return BudgetModel(
       id: id,
-      name: name,
-      description: description,
       periodicity: periodicity,
       amount: amount,
       currencyCode: currencyCode,
+      observation: observation,
       createdAt: createdAt,
       updatedAt: updatedAt,
       deletedAt: deletedAt,
@@ -95,11 +87,10 @@ final class BudgetModel {
   factory BudgetModel.fromMap(Map<String, dynamic> map) {
     return BudgetModel(
       id: map['id'],
-      name: map['name'],
-      description: map['description'],
       periodicity: BudgetPeriodicityEnum.fromId(map['periodicity']),
       amount: map['amount'],
       currencyCode: map['currency_code'],
+      observation: map['observation'],
       createdAt: DateUtils.parse(map['created_at']),
       updatedAt: DateUtils.tryParse(map['updated_at']),
       deletedAt: DateUtils.tryParse(map['deleted_at']),
@@ -110,11 +101,10 @@ final class BudgetModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name,
-      'description': description,
       'periodicity': periodicity.id,
       'amount': amount,
       'currency_code': currencyCode,
+      'observation': observation,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'deleted_at': deletedAt?.toIso8601String(),

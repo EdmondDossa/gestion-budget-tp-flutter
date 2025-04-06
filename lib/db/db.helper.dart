@@ -3,7 +3,6 @@ import 'package:sqflite/sqflite.dart';
 
 import 'package:budgetti/models/budget.repository.dart';
 import 'package:budgetti/models/category.repository.dart';
-import 'package:budgetti/models/currency.repository.dart';
 import 'package:budgetti/models/transaction.repository.dart';
 
 class DBHelper {
@@ -26,19 +25,15 @@ class DBHelper {
 
   Future<void> _onCreate(Database db, int version) async {
     await db.transaction((txn) async {
-      // 1. Currencies
-      await txn.execute(CurrencyRepository.createTableQuery);
-      await txn.execute(CurrencyRepository.createIndexesQuery);
-
-      // 2. Categories
+      // 1. Categories
       await txn.execute(CategoryRepository.createTableQuery);
       await txn.execute(CategoryRepository.createIndexesQuery);
 
-      // 3. Budgets (depends on currencies)
+      // 2. Budgets (depends on currencies)
       await txn.execute(BudgetRepository.createTableQuery);
       await txn.execute(BudgetRepository.createIndexesQuery);
 
-      // 4. Transactions (depends on budgets and categories)
+      // 3. Transactions (depends on budgets and categories)
       await txn.execute(TransactionRepository.createTableQuery);
       await txn.execute(TransactionRepository.createIndexesQuery);
     });

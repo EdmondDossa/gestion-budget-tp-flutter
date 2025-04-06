@@ -1,5 +1,5 @@
 {
   "explorer.fileNesting.patterns": {
-    "*.dart": "$(capture).repository.dart, $(capture).provider.dart"
+    "*.dart": "$(capture).*.dart"
   }
 }

@@ -4,11 +4,12 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'screens/categories/main.dart';
 import 'screens/dashboard/main.dart';
-import 'screens/expenses/main.dart';
+import 'screens/transactions/main.dart';
 import 'screens/budgets/main.dart';
-import 'screens/incomes/main.dart';
+
 import 'models/budget.provider.dart';
 import 'models/category.provider.dart'; 
+import 'models/transaction.provider.dart';
 
 import 'app/themes.dart';
 import 'app/constants.dart';
@@ -28,8 +29,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   final List<Widget> _screens = const [
     DashboardMainScreen(),
-    IncomesScreen(),
-    ExpensesScreen(),
+    TransactionsScreen(),
     CategoriesScreen(),
     BudgetsScreen(),
   ];
@@ -41,14 +41,9 @@ class _AppState extends State<App> {
       label: DashboardMainScreen.title,
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.monetization_on_outlined),
-      activeIcon: Icon(Icons.monetization_on),
-      label: IncomesScreen.title,
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.receipt_long_outlined),
-      activeIcon: Icon(Icons.receipt_long),
-      label: ExpensesScreen.title,
+      icon: Icon(Icons.currency_exchange_outlined),
+      activeIcon: Icon(Icons.currency_exchange),
+      label: TransactionsScreen.title,
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.category_outlined),
@@ -81,6 +76,7 @@ class _AppState extends State<App> {
       providers: [
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
       ],
       child: ShadApp(
         title: AppConstants.appName,

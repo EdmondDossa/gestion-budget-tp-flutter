@@ -4,7 +4,6 @@ import 'budget.dart';
 import 'budget.repository.dart';
 
 final class BudgetProvider with ChangeNotifier {
-
   final BudgetRepository _budgetRepository = BudgetRepository();
 
   bool _isLoading = false;
@@ -46,8 +45,12 @@ final class BudgetProvider with ChangeNotifier {
       await _budgetRepository.create(budget);
       _budgets.add(budget);
       notifyListeners();
-    } catch (e) {
-      _setError(e.toString());
+    } on Exception catch (e) {
+      if (e.toString().contains('periodicity')) {
+        _setError('A budget with this periodicity already exists.');
+      } else {
+        _setError('Something went wrong.');
+      }
     } finally {
       _setLoading(false);
     }
@@ -110,5 +113,4 @@ final class BudgetProvider with ChangeNotifier {
       _setLoading(false);
     }
   }
-
 }

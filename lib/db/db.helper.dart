@@ -1,5 +1,10 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'package:budgetti/models/budget.repository.dart';
+import 'package:budgetti/models/category.repository.dart';
+import 'package:budgetti/models/currency.repository.dart';
+import 'package:budgetti/models/transaction.repository.dart';
 
 class DBHelper {
   static final DBHelper _instance = DBHelper._internal();
@@ -15,61 +20,29 @@ class DBHelper {
   }
 
   Future<Database> _initDB() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'budgetti.db');
-
+    final path = join(await getDatabasesPath(), 'budgetti.db');
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future _onCreate(Database db, int version) async {
     await db.transaction((txn) async {
-      await txn.execute('''
-        CREATE TABLE IF NOT EXISTS categories (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          description TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
 
-      await txn.execute('''
-        CREATE TABLE IF NOT EXISTS budgets (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          description TEXT,
-          periodicity TEXT NOT NULL CHECK (periodicity IN ('weekly', 'monthly', 'trimesterly', 'yearly')),
-          amount REAL NOT NULL,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
+      // Create the currencies table and indexes if they don't exist
+      await txn.execute(CategoryRepository.createTableQuery);
+      await txn.execute(CategoryRepository.createIndexesQuery);
 
-      await txn.execute('''
-        CREATE TABLE IF NOT EXISTS expenses (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          date TEXT NOT NULL,
-          category_id INTEGER,
-          amount REAL NOT NULL,
-          label TEXT NOT NULL,
-          notes TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL,
-          FOREIGN KEY (category_id) REFERENCES categories(id)
-        )
-      ''');
+      // Create the budgets table and indexes if they don't exist
+      await txn.execute(BudgetRepository.createTableQuery);
+      await txn.execute(BudgetRepository.createIndexesQuery);
 
-      await txn.execute('''
-        CREATE TABLE IF NOT EXISTS incomes (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          date TEXT NOT NULL,
-          amount REAL NOT NULL,
-          label TEXT NOT NULL,
-          notes TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        )
-      ''');
+      // Create the transactions table and indexes if they don't exist
+      await txn.execute(TransactionRepository.createTableQuery);
+      await txn.execute(TransactionRepository.createIndexesQuery);
+
+      /// Create the currencies table and indexes if they don't exist
+      await txn.execute(CurrencyRepository.createTableQuery);
+      await txn.execute(CurrencyRepository.createIndexesQuery);
+      
     });
   }
 }

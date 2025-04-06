@@ -28,7 +28,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final List<Widget> _screens = const [
-    DashboardMainScreen(),
+    DashboardScreen(),
     TransactionsScreen(),
     CategoriesScreen(),
     BudgetsScreen(),
@@ -38,7 +38,7 @@ class _AppState extends State<App> {
     BottomNavigationBarItem(
       icon: Icon(Icons.dashboard_outlined),
       activeIcon: Icon(Icons.dashboard),
-      label: DashboardMainScreen.title,
+      label: DashboardScreen.title,
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.currency_exchange_outlined),

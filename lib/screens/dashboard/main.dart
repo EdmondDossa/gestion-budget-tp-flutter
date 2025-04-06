@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class DashboardScreen extends StatefulWidget {
+  static const String title = 'Tableau de bord';
+
   const DashboardScreen({super.key});
 
   @override

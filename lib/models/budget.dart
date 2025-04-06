@@ -1,5 +1,3 @@
-import '../currency/currency.model.dart';
-
 final class BudgetModel {
   /// The unique identifier for the budget. 
   final String? id;
@@ -16,8 +14,8 @@ final class BudgetModel {
   /// The amount allocated for the budget.
   final double amount;
 
-  /// The currency of the budget amount.
-  final CurrencyModel currency;
+  /// The currency in which the budget amount is specified.
+  final String currencyCode;
 
   /// The date and time when the budget was created.
   final DateTime createdAt;
@@ -35,7 +33,7 @@ final class BudgetModel {
     this.description,
     required this.periodicity,
     required this.amount,
-    required this.currency,
+    required this.currencyCode,
     required this.createdAt,
     this.updatedAt,
     this.deletedAt,
@@ -48,7 +46,7 @@ final class BudgetModel {
     String? description,
     required BudgetPeriodicityEnum periodicity,
     required double amount,
-    required CurrencyModel currency, 
+    required String currencyCode,
     required DateTime createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
@@ -59,7 +57,7 @@ final class BudgetModel {
       description: description,
       periodicity: periodicity,
       amount: amount,
-      currency: currency,
+      currencyCode: currencyCode,
       createdAt: createdAt,
       updatedAt: updatedAt,
       deletedAt: deletedAt,
@@ -73,7 +71,7 @@ final class BudgetModel {
     String? description,
     required BudgetPeriodicityEnum periodicity,
     required double amount,
-    required CurrencyModel currency,
+    required String currencyCode,
     required DateTime createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
@@ -84,7 +82,7 @@ final class BudgetModel {
       description: description,
       periodicity: periodicity,
       amount: amount,
-      currency: currency,
+      currencyCode: currencyCode,
       createdAt: createdAt,
       updatedAt: updatedAt,
       deletedAt: deletedAt,
@@ -99,7 +97,7 @@ final class BudgetModel {
       description: map['description'],
       periodicity: BudgetPeriodicityEnum.fromCode(map['periodicity']),
       amount: map['amount'],
-      currency: CurrencyModel.fromMap(map['currency']),
+      currencyCode: map['currency_code'],
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: DateTime.tryParse(map['updated_at']),
       deletedAt: DateTime.tryParse(map['deleted_at']),
@@ -114,7 +112,7 @@ final class BudgetModel {
       'description': description,
       'periodicity': periodicity.code,
       'amount': amount,
-      'currency': currency.toMap(),
+      'currency_code': currencyCode,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'deleted_at': deletedAt?.toIso8601String(),

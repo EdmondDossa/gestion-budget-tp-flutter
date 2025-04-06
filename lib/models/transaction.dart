@@ -1,5 +1,4 @@
-import '../category/category.model.dart';
-import '../currency/currency.model.dart';
+import 'category.dart';
 
 final class TransactionModel {
   /// Unique transaction ID
@@ -21,7 +20,7 @@ final class TransactionModel {
   final double amount;
 
   /// Currency used
-  final CurrencyModel currency;
+  final String currencyCode;
 
   /// Date and time of the transaction
   final DateTime timestamp;
@@ -42,7 +41,7 @@ final class TransactionModel {
     this.description,
     this.category,
     required this.amount,
-    required this.currency,
+    required this.currencyCode,
     required this.timestamp,
     required this.createdAt,
     this.updatedAt,
@@ -57,7 +56,7 @@ final class TransactionModel {
     String? description,
     CategoryModel? category,
     required double amount,
-    required CurrencyModel currency,
+    required String currencyCode,
     required DateTime timestamp,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -70,7 +69,7 @@ final class TransactionModel {
       description: description,
       category: category,
       amount: amount,
-      currency: currency,
+      currencyCode: currencyCode,
       timestamp: timestamp,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -86,7 +85,7 @@ final class TransactionModel {
     String? description,
     CategoryModel? category,
     required double amount,
-    required CurrencyModel currency,
+    required String currencyCode,
     required DateTime timestamp,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -99,7 +98,7 @@ final class TransactionModel {
       description: description,
       category: category,
       amount: amount,
-      currency: currency,
+      currencyCode: currencyCode,
       timestamp: timestamp,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -116,7 +115,7 @@ final class TransactionModel {
       description: map['description'],
       category: CategoryModel.fromMap(map['category']),
       amount: map['amount'],
-      currency: CurrencyModel.fromMap(map['currency']),
+      currencyCode: map['currency_code'],
       timestamp: DateTime.parse(map['timestamp']),
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: DateTime.tryParse(map['updated_at']),
@@ -132,7 +131,7 @@ final class TransactionModel {
       'title': title,
       'description': description,
       'amount': amount,
-      'currency': currency.toMap(),
+      'currency_code': currencyCode,
       'category': category?.toMap(),
       'timestamp': timestamp.toIso8601String(),
       'created_at': createdAt.toIso8601String(),

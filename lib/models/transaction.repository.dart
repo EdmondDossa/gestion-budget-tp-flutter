@@ -6,12 +6,12 @@ import 'package:budgetti/db/db.helper.dart';
 import 'package:budgetti/db/crud.repository.dart';
 import 'package:budgetti/utils/nanoid.dart';
 
-import '../category/category.model.dart';
-import '../category/category.repository.dart';
-import '../currency/currency.model.dart';
-import '../currency/currency.repository.dart';
+import 'category.dart';
+import 'category.repository.dart';
+import 'currency.dart';
+import 'currency.repository.dart';
 
-import 'transaction.model.dart';
+import 'transaction.dart';
 
 final class TransactionRepository implements CrudRepository<TransactionModel> {
 

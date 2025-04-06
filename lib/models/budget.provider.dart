@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'budget.model.dart';
+import 'budget.dart';
 import 'budget.repository.dart';
 
 final class BudgetProvider with ChangeNotifier {

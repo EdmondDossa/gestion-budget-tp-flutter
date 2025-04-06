@@ -1,12 +1,13 @@
 import 'dart:io';
 
+import 'package:budgetti/models/currency.repository.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:budgetti/db/db.helper.dart';
 import 'package:budgetti/db/crud.repository.dart';
 import 'package:budgetti/utils/nanoid.dart';
 
-import 'budget.model.dart';
+import 'budget.dart';
 
 final class BudgetRepository implements CrudRepository<BudgetModel> {
   static const String tableName = 'budgets';
@@ -20,13 +21,13 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
       periodicity INTEGER UNIQUE NOT NULL CHECK (periodicity IN (${BudgetPeriodicityEnum.weekly.id}, ${BudgetPeriodicityEnum.monthly.id}, ${BudgetPeriodicityEnum.trimesterly.id}, ${BudgetPeriodicityEnum.yearly.id})),
       amount REAL NOT NULL,
 
-      currency_id TEXT NOT NULL,
+      currency_code TEXT NOT NULL,
 
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       deleted_at TEXT,
 
-      FOREIGN KEY (currency_id) REFERENCES currencies(id) ON DELETE CASCADE ON UPDATE CASCADE
+      FOREIGN KEY (currency_code) REFERENCES ${CurrencyRepository.tableName}(code) ON DELETE CASCADE ON UPDATE CASCADE
     )
   ''';
 

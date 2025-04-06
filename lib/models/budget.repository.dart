@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:budgetti/db/db.helper.dart';
 import 'package:budgetti/db/crud.repository.dart';
 import 'package:budgetti/utils/nanoid.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'budget.dart';

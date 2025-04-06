@@ -47,7 +47,7 @@ final class BudgetModel {
     required BudgetPeriodicityEnum periodicity,
     required double amount,
     required String currencyCode,
-    required DateTime createdAt,
+    DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
   }) {    
@@ -58,7 +58,7 @@ final class BudgetModel {
       periodicity: periodicity,
       amount: amount,
       currencyCode: currencyCode,
-      createdAt: createdAt,
+      createdAt: DateTime.now(),
       updatedAt: updatedAt,
       deletedAt: deletedAt,
     );

@@ -1,10 +1,12 @@
+import 'package:budgetti/models/budget.provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'screens/categories/categories.screen.dart';
-import 'screens/dashboard/dashboard.screen.dart';
-import 'screens/expenses/expenses.screen.dart';
-import 'screens/budgets/budgets.screen.dart';
-import 'screens/incomes/incomes.screen.dart';
+import 'screens/categories/main.dart';
+import 'screens/dashboard/main.dart';
+import 'screens/expenses/main.dart';
+import 'screens/budgets/main.dart';
+import 'screens/incomes/main.dart';
 
 import 'app.themes.dart';
 import 'app.constants.dart';
@@ -22,10 +24,9 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    DashboardScreen(),
+    DashboardMainScreen(),
     IncomesScreen(),
     ExpensesScreen(),
     CategoriesScreen(),
@@ -36,7 +37,7 @@ class _AppState extends State<App> {
     BottomNavigationBarItem(
       icon: Icon(Icons.dashboard_outlined),
       activeIcon: Icon(Icons.dashboard),
-      label: DashboardScreen.title,
+      label: DashboardMainScreen.title,
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.monetization_on_outlined),
@@ -60,6 +61,8 @@ class _AppState extends State<App> {
     ),
   ];
 
+  int _currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -73,30 +76,25 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: appName,
-      debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
-      darkTheme: appThemes[AppTheme.dark],
-      theme: appThemes[AppTheme.light],
-      home: Scaffold(
-        appBar: AppBar(
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.notifications),
-              onPressed: () {
-                // Handle notifications action
-              },
-            ),
-          ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => BudgetProvider()),
+      ],
+      child:  MaterialApp(
+        title: appName,
+        debugShowCheckedModeBanner: false,
+        themeMode: ThemeMode.system,
+        theme: appThemes[AppTheme.light],
+        darkTheme: appThemes[AppTheme.dark],
+        home: Scaffold(
+          body: IndexedStack(index: _currentIndex, children: _screens),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: _onTap,
+            items: _bottomNavBarItems,
+          ),
         ),
-        body: IndexedStack(index: _currentIndex, children: _screens),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTap,
-          items: _bottomNavBarItems,
-        ),
-      ),
+      )
     );
   }
 }

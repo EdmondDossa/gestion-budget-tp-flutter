@@ -8,10 +8,10 @@ import 'package:budgetti/models/transaction.repository.dart';
 
 class DBHelper {
   static final DBHelper _instance = DBHelper._internal();
+  static Database? _database;
+
   factory DBHelper() => _instance;
   DBHelper._internal();
-
-  static Database? _database;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -20,29 +20,27 @@ class DBHelper {
   }
 
   Future<Database> _initDB() async {
-    final path = join(await getDatabasesPath(), 'budgetti.db');
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    final dbPath = join(await getDatabasesPath(), 'budgetti.db');
+    return await openDatabase(dbPath, version: 1, onCreate: _onCreate);
   }
 
-  Future _onCreate(Database db, int version) async {
+  Future<void> _onCreate(Database db, int version) async {
     await db.transaction((txn) async {
+      // 1. Currencies
+      await txn.execute(CurrencyRepository.createTableQuery);
+      await txn.execute(CurrencyRepository.createIndexesQuery);
 
-      // Create the currencies table and indexes if they don't exist
+      // 2. Categories
       await txn.execute(CategoryRepository.createTableQuery);
       await txn.execute(CategoryRepository.createIndexesQuery);
 
-      // Create the budgets table and indexes if they don't exist
+      // 3. Budgets (depends on currencies)
       await txn.execute(BudgetRepository.createTableQuery);
       await txn.execute(BudgetRepository.createIndexesQuery);
 
-      // Create the transactions table and indexes if they don't exist
+      // 4. Transactions (depends on budgets and categories)
       await txn.execute(TransactionRepository.createTableQuery);
       await txn.execute(TransactionRepository.createIndexesQuery);
-
-      /// Create the currencies table and indexes if they don't exist
-      await txn.execute(CurrencyRepository.createTableQuery);
-      await txn.execute(CurrencyRepository.createIndexesQuery);
-      
     });
   }
 }

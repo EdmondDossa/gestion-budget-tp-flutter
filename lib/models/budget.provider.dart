@@ -5,7 +5,7 @@ import 'budget.repository.dart';
 
 final class BudgetProvider with ChangeNotifier {
 
-  final BudgetRepository _budgetRepository;
+  final BudgetRepository _budgetRepository = BudgetRepository();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -16,8 +16,6 @@ final class BudgetProvider with ChangeNotifier {
 
   final List<BudgetModel> _budgets = [];
   List<BudgetModel> get budgets => _budgets;
-
-  BudgetProvider(this._budgetRepository);
 
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -71,7 +69,7 @@ final class BudgetProvider with ChangeNotifier {
     }
   }
 
-  Future<void> delete(BudgetModel budget) async {
+  Future<void> remove(BudgetModel budget) async {
     _setLoading(true);
     try {
       await _budgetRepository.softDelete(budget);
@@ -100,7 +98,7 @@ final class BudgetProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deletePermanently(BudgetModel budget) async {
+  Future<void> delete(BudgetModel budget) async {
     _setLoading(true);
     try {
       await _budgetRepository.delete(budget);

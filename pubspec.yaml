@@ -9,6 +9,7 @@ environment:
   sdk: ^3.7.0
 
 dependencies:
+  fl_chart: ^0.70.2
   flutter:
     sdk: flutter
   nanoid2: ^2.0.1

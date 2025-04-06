@@ -1,9 +1,10 @@
-abstract class CrudRepository<T, K> {
-  Future<List<T>> getAll();
-  Future<T?> getById(K id);
-  Future<void> create(T item);
-  Future<void> update(K id, T item);
-  Future<void> delete(K id);
-  Future<void> deleteAll();
-  Future<void> save(T item);
+abstract class CrudRepository<T> {
+  Future<List<T>> findAll();
+  Future<List<T>> findAllDeleted();
+  Future<T?> findById(String id);
+  Future<int> create(T item);
+  Future<int> update(T item);
+  Future<int> delete(T item);
+  Future<int> softDelete(T item);
+  Future<int> restore(T item);
 }

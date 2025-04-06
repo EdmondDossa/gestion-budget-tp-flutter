@@ -1,0 +1,11 @@
+const String appName = 'Budgetti';
+const String appVersion = '1.0.0';
+const String appDescription = 'This is a sample Flutter application.';
+const String appAuthor = 'Your Name';
+const String appLicense = 'MIT License';
+const String appRepository = 'https://github.com/your-repo';
+const String appLastUpdated = '2023-10-01';
+const String appSupportEmail = 'support@yourapp.com';
+const String appLastUpdatedBy = 'Your Name';
+const String appLastUpdatedByEmail = 'your.email@example.com';
+const String appLastUpdatedByPhone = '123-456-7890';

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+class DashboardMainScreen extends StatelessWidget {
+
+  static const String title = 'Dashboard';
+  static const String routeName = '/dashboard';
+
+  const DashboardMainScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
       body: const Center(
         child: Text('Dashboard Screen'),
       ),

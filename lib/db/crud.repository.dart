@@ -1,8 +1,10 @@
 abstract class CrudRepository<T> {
-  Future<List<T>> getAll();
-  Future<T?> getById(String id);
-  Future<void> create(T item);
-  Future<void> update(String id, T item);
-  Future<void> delete(String id);
-  Future<void> deleteAll();
+  Future<List<T>> findAll();
+  Future<List<T>> findAllDeleted();
+  Future<T?> findById(String id);
+  Future<int> create(T item);
+  Future<int> update(T item);
+  Future<int> delete(T item);
+  Future<int> softDelete(T item);
+  Future<int> restore(T item);
 }

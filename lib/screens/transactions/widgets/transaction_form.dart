@@ -85,6 +85,42 @@ class _TransactionFormState extends State<TransactionForm> {
     }
   }
 
+  Widget buildForm() {
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        ShadInputFormField(
+          label: const Text('Titre'),
+          controller: _titleController,
+          validator: (value) => value.isEmpty ? 'Le titre est requis' : null,
+        ),
+        const SizedBox(height: 8),
+        ShadInputFormField(
+          label: const Text('Montant'),
+          controller: _amountController,
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            final amount = double.tryParse(value ?? '');
+            if (amount == null || amount <= 0) {
+              return 'Entrez un montant valide';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 8),
+        ShadInputFormField(
+          label: const Text('Description'),
+          controller: _descriptionController,
+        ),
+        const SizedBox(height: 16),
+        ShadButton(
+          onPressed: _handleSubmit,
+          child: Text(isEditMode ? 'Mettre à jour' : 'Enregistrer'),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
@@ -92,82 +128,49 @@ class _TransactionFormState extends State<TransactionForm> {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ShadTabs<TransactionTypeEnum>(
               value: _type,
+              onChanged: (value) {
+                setState(() => _type = value);
+              },
               tabBarConstraints: const BoxConstraints(maxWidth: 400),
               contentConstraints: const BoxConstraints(maxWidth: 400),
-              onChanged: (value) {
-                setState(() {
-                  _type = value;
-                });
-              },
               tabs: [
                 ShadTab(
                   value: TransactionTypeEnum.income,
                   content: ShadCard(
-                    title: Text(isEditMode ? 'Éditer le revenue' : 'Enregistrer un revenue'),
-                    description: Text(isEditMode ? 'Éditer le revenue ${widget.transaction?.title}': 'Remplisser le formulaire pour enregistrer un revenue'),
-                    footer: ShadButton(child: Text(isEditMode ? 'Sauvegarder' : 'Enregistrer')),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 16),
-                        ShadInputFormField(
-                          label: const Text('Name'),
-                          initialValue: 'Ale',
-                        ),
-                        const SizedBox(height: 8),
-                        ShadInputFormField(
-                          label: const Text('Username'),
-                          initialValue: 'nank1ro',
-                        ),
-                        const SizedBox(height: 16),
-                        ShadInputFormField(
-                          label: const Text('Amount'),
-                          initialValue: '0',
-                        ),
-                        const SizedBox(height: 8),
-                        ShadInputFormField(
-                          label: const Text('Description'),
-                          initialValue: '',
-                        ),
-                        const SizedBox(height: 8),
-                        ShadInputFormField(
-                          label: const Text('New Field'),
-                          initialValue: '',
-                        ),
-                      ],
+                    title: Text(
+                      isEditMode ? 'Éditer un revenu' : 'Ajouter un revenu',
                     ),
+                    description: Text(
+                      isEditMode
+                          ? 'Modifiez les informations de ce revenu.'
+                          : 'Remplissez ce formulaire pour enregistrer un revenu.',
+                    ),
+                    footer: const SizedBox.shrink(),
+                    child: buildForm(),
                   ),
-                  child: const Text('Incomes'),
+                  child: const Text('Revenus'),
                 ),
                 ShadTab(
                   value: TransactionTypeEnum.expense,
                   content: ShadCard(
-                    title: Text(isEditMode ? 'Éditer le dépense' : 'Enregistrer un dépense'),
-                    description: Text(isEditMode ? 'Éditer le dépense ${widget.transaction?.title}': 'Remplisser le formulaire pour enregistrer un dépense'),
-                    footer: ShadButton(child: Text(isEditMode ? 'Sauvegarder' : 'Enregistrer')),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        ShadInputFormField(
-                          label: const Text('Current expenses'),
-                          obscureText: false,
-                        ),
-                        const SizedBox(height: 8),
-                        ShadInputFormField(
-                          label: const Text('New expenses'),
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+                    title: Text(
+                      isEditMode ? 'Éditer une dépense' : 'Ajouter une dépense',
                     ),
+                    description: Text(
+                      isEditMode
+                          ? 'Modifiez les informations de cette dépense.'
+                          : 'Remplissez ce formulaire pour enregistrer une dépense.',
+                    ),
+                    footer: const SizedBox.shrink(),
+                    child: buildForm(),
                   ),
-                  child: const Text('Expenses'),
+                  child: const Text('Dépenses'),
                 ),
               ],
             ),

@@ -1,3 +1,5 @@
+import 'package:budgetti/utils/date.dart';
+
 final class BudgetModel {
   /// The unique identifier for the budget. 
   final String? id;
@@ -47,7 +49,7 @@ final class BudgetModel {
     required BudgetPeriodicityEnum periodicity,
     required double amount,
     required String currencyCode,
-    DateTime? createdAt,
+    required DateTime createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
   }) {    
@@ -58,7 +60,7 @@ final class BudgetModel {
       periodicity: periodicity,
       amount: amount,
       currencyCode: currencyCode,
-      createdAt: DateTime.now(),
+      createdAt: createdAt,
       updatedAt: updatedAt,
       deletedAt: deletedAt,
     );
@@ -95,12 +97,12 @@ final class BudgetModel {
       id: map['id'],
       name: map['name'],
       description: map['description'],
-      periodicity: BudgetPeriodicityEnum.fromCode(map['periodicity']),
+      periodicity: BudgetPeriodicityEnum.fromId(map['periodicity']),
       amount: map['amount'],
       currencyCode: map['currency_code'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.tryParse(map['updated_at']),
-      deletedAt: DateTime.tryParse(map['deleted_at']),
+      createdAt: DateUtils.parse(map['created_at']),
+      updatedAt: DateUtils.tryParse(map['updated_at']),
+      deletedAt: DateUtils.tryParse(map['deleted_at']),
     );
   }
 
@@ -110,7 +112,7 @@ final class BudgetModel {
       'id': id,
       'name': name,
       'description': description,
-      'periodicity': periodicity.code,
+      'periodicity': periodicity.id,
       'amount': amount,
       'currency_code': currencyCode,
       'created_at': createdAt.toIso8601String(),
@@ -134,8 +136,8 @@ enum BudgetPeriodicityEnum {
 
   const BudgetPeriodicityEnum(this.id, this.code, this.name);
 
-  static BudgetPeriodicityEnum fromCode(String code) {
-    return BudgetPeriodicityEnum.values.firstWhere((e) => e.code == code);
+  static BudgetPeriodicityEnum fromId(int id) {
+    return BudgetPeriodicityEnum.values.firstWhere((e) => e.id == id);
   }
 
 }

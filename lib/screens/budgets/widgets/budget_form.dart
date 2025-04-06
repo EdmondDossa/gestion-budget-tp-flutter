@@ -124,6 +124,7 @@ class _BudgetFormState extends State<BudgetForm> {
                 },
               ),
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),

@@ -51,7 +51,7 @@ class _AppState extends State<App> {
       label: CategoriesScreen.title,
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.pie_chart_outline_outlined),
+      icon: Icon(Icons.pie_chart_outline),
       activeIcon: Icon(Icons.pie_chart),
       label: BudgetsScreen.title,
     ),

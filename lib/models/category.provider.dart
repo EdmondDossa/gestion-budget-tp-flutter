@@ -9,29 +9,32 @@ final class CategoryProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  String _error = '';
-  String get error => _error;
-  bool get hasError => _error.isNotEmpty;
-
-  final List<CategoryModel> _categories = [];
-  List<CategoryModel> get categories => _categories;
-
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
+
+  String _error = '';
+  String get error => _error;
+  bool get hasError => _error.isNotEmpty;
 
   void _setError(String error) {
     _error = error;
     notifyListeners();
   }
 
+  void clearError() {
+    _error = '';
+    notifyListeners();
+  }
+
+  List<CategoryModel> _categories = [];
+  List<CategoryModel> get categories => _categories;
+
   Future<void> fetchAll() async {
     _setLoading(true);
     try {
-      final categories = await _categoryRepository.findAll();
-      _categories.clear();
-      _categories.addAll(categories);
+      _categories = await _categoryRepository.findAll();
     } catch (e) {
       _setError(e.toString());
     } finally {

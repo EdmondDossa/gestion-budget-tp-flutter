@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'package:budgetti/models/budget.dart';
-import 'package:budgetti/models/budget.provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+
+import '/models/budget.dart';
+import '/models/budget.provider.dart';
+import '/models/category.provider.dart';
 
 import 'widgets/budget_card.dart';
 import 'widgets/budget_form.dart';
@@ -22,22 +23,24 @@ final class _BudgetsScreenState extends State<BudgetsScreen> {
   BudgetModel? _budget;
 
   BudgetProvider get budgetProvider => Provider.of<BudgetProvider>(context, listen: false);
+  CategoryProvider get categoryProvider => Provider.of<CategoryProvider>(context, listen: false);
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       budgetProvider.fetchAll();
+      categoryProvider.fetchAll();
     });
   }
 
   void handleCreateBudget() {
-    if (budgetProvider.budgets.length >= 4) {
+    if (categoryProvider.categories.isEmpty) {
       showShadDialog(
         context: context,
         builder: (context) => ShadDialog.alert(
-          title: const Text('Limite maximale atteinte'),
-          description: const Text('Vous pouvez créer jusqu’à 4 budgets maximum.'),
+          title: const Text('Aucune catégorie disponible'),
+          description: const Text('Veuillez ajouter des catégories avant de créer un budget.'),
         ),
       );
       return;

@@ -1,9 +1,8 @@
+import '/core/persistable.model.dart';
+
 import 'category.dart';
 
-final class TransactionModel {
-  /// Unique transaction ID
-  final String? id;
-
+final class TransactionModel extends PersistableModel {
   /// Transaction type: income, expense, transfer
   final TransactionTypeEnum type;
 
@@ -25,17 +24,8 @@ final class TransactionModel {
   /// Date and time of the transaction
   final DateTime timestamp;
 
-  /// The date and time when the budget was created.
-  final DateTime createdAt;
-
-  /// The date and time when the budget was last updated.
-  final DateTime? updatedAt;
-
-  /// The date and time when the budget was deleted.
-  final DateTime? deletedAt;
-
   TransactionModel({
-    this.id,
+    super.id,
     required this.type,
     required this.title,
     this.description,
@@ -43,67 +33,65 @@ final class TransactionModel {
     required this.amount,
     required this.currencyCode,
     required this.timestamp,
-    required this.createdAt,
-    this.updatedAt,
-    this.deletedAt,
+    super.createdAt,
+    super.updatedAt,
+    super.deletedAt,
   });
 
   /// Factory constructor to create a Transaction object with default values  
   factory TransactionModel.create({
-    String? id,
     required TransactionTypeEnum type,
     required String title,
     String? description,
     CategoryModel? category,
     required double amount,
     required String currencyCode,
-    required DateTime timestamp,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt
+    required DateTime timestamp
   }) {
     return TransactionModel(
-      id: id,
       type: type,
       title: title,
       description: description,
       category: category,
       amount: amount,
       currencyCode: currencyCode,
-      timestamp: timestamp,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      deletedAt: deletedAt
+      timestamp: timestamp
     );
   }
 
   /// Factory constructor to update an existing Transaction object
   factory TransactionModel.update({
-    required String? id,
     required TransactionTypeEnum type,
     required String title,
     String? description,
     CategoryModel? category,
     required double amount,
     required String currencyCode,
-    required DateTime timestamp,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt
+    required DateTime timestamp
   }) {
     return TransactionModel(
-      id: id,
       type: type,
       title: title,
       description: description,
       category: category,
       amount: amount,
       currencyCode: currencyCode,
-      timestamp: timestamp,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      deletedAt: deletedAt
+      timestamp: timestamp
     );
+  }
+
+  /// Method to convert Transaction object to Map
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'type': type.id,
+      'title': title,
+      'description': description,
+      'amount': amount,
+      'currency_code': currencyCode,
+      'category_id': category?.id,
+      'timestamp': timestamp.toIso8601String()
+    };
   }
 
   /// Factory constructor to create a Transaction object from a map
@@ -113,38 +101,29 @@ final class TransactionModel {
       type: TransactionTypeEnum.fromId(map['type']),
       title: map['title'],
       description: map['description'],
-      category: CategoryModel.fromMap(map['category']),
       amount: map['amount'],
       currencyCode: map['currency_code'],
       timestamp: DateTime.parse(map['timestamp']),
       createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.tryParse(map['updated_at']),
-      deletedAt: DateTime.tryParse(map['deleted_at']),
+      updatedAt: DateTime.parse(map['updated_at']),
+      deletedAt: map['deleted_at'] != null ? DateTime.parse(map['deleted_at']) : null,
+      category: map['category_id'] != null
+          ? CategoryModel(
+              id: map['category_id'],
+              name: map['category_name'],
+              description: map['category_description'],
+              createdAt: DateTime.parse(map['category_created_at']),
+              updatedAt: DateTime.parse(map['category_updated_at']),
+              deletedAt: map['category_deleted_at'] != null ? DateTime.parse(map['category_deleted_at']) : null
+            )
+          : null,
     );
   }
-
-  /// Method to convert Transaction object to MAP
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'type': type.id,
-      'title': title,
-      'description': description,
-      'amount': amount,
-      'currency_code': currencyCode,
-      'category': category?.toMap(),
-      'timestamp': timestamp.toIso8601String(),
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-      'deleted_at': deletedAt?.toIso8601String(),
-    };
-  }
-
 }
 
 enum TransactionTypeEnum {
-  income(100, 'income', 'Income'),
-  expense(101, 'expense', 'Expense');
+  income(100, 'transaction.type.income', 'Income'),
+  expense(101, 'transaction.type.expense', 'Expense');
 
   final int id;
   final String code;

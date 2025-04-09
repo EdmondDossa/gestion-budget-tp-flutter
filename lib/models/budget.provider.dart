@@ -9,22 +9,27 @@ final class BudgetProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  String _error = '';
-  String get error => _error;
-  bool get hasError => _error.isNotEmpty;
-
-  final List<BudgetModel> _budgets = [];
-  List<BudgetModel> get budgets => _budgets;
-
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
+  String _error = '';
+  String get error => _error;
+  bool get hasError => _error.isNotEmpty;
+
   void _setError(String error) {
     _error = error;
     notifyListeners();
   }
+
+  void clearError() {
+    _error = '';
+    notifyListeners();
+  }
+
+  final List<BudgetModel> _budgets = [];
+  List<BudgetModel> get budgets => _budgets;
 
   Future<void> fetchAll() async {
     _setLoading(true);
@@ -42,7 +47,11 @@ final class BudgetProvider with ChangeNotifier {
   Future<void> add(BudgetModel budget) async {
     _setLoading(true);
     try {
-      await _budgetRepository.create(budget);
+      final int result = await _budgetRepository.create(budget);
+      if (result == 0) {
+        _setError('Failed to create budget.');
+        return;
+      }
       _budgets.add(budget);
       notifyListeners();
     } on Exception catch (e) {

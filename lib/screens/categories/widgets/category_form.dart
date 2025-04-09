@@ -23,12 +23,9 @@ class _CategoryFormState extends State<CategoryForm> {
 
   bool get isEditMode => widget.category?.id != null;
 
+  late int? _id;
   late String _name;
   late String? _description;
-  late String? _id;
-  late String _createdAt;
-  late String? _updatedAt;
-  late String? _deletedAt;
 
   @override
   void initState() {
@@ -36,9 +33,6 @@ class _CategoryFormState extends State<CategoryForm> {
     _id = widget.category?.id;
     _name = widget.category?.name ?? '';
     _description = widget.category?.description ?? '';
-    _createdAt = widget.category?.createdAt.toString() ?? DateTime.now().toString();
-    _updatedAt = widget.category?.updatedAt?.toString();
-    _deletedAt = widget.category?.deletedAt?.toString();
   }
 
   void handleSubmit() {
@@ -47,9 +41,6 @@ class _CategoryFormState extends State<CategoryForm> {
         id: _id,
         name: _name,
         description: _description,
-        createdAt: DateTime.tryParse(_createdAt) ?? DateTime.now(),
-        updatedAt: _updatedAt != null ? DateTime.tryParse(_updatedAt!) : null,
-        deletedAt: _deletedAt != null ? DateTime.tryParse(_deletedAt!) : null,
       );
       widget.onSubmit(category);
 
@@ -103,6 +94,7 @@ class _CategoryFormState extends State<CategoryForm> {
           ShadInputFormField(
             id: 'description',
             initialValue: _description,
+            maxLines: 5,
             label: const Text('Description (optional)'),
             placeholder: const Text('Entrez une description'),
             description: const Text('Ex: Catégorie pour les dépenses alimentaires'),

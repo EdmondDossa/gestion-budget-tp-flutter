@@ -1,44 +1,60 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:budgetti/models/transaction.dart';
-import 'package:budgetti/models/transaction.repository.dart';
+import 'transaction.dart';
+import 'transaction.repository.dart';
 
 class TransactionProvider with ChangeNotifier {
   final TransactionRepository _repository = TransactionRepository();
 
-  List<TransactionModel> _transactions = [];
   bool _isLoading = false;
-  bool _hasError = false;
-  String _error = '';
-
-  // Getters
-  List<TransactionModel> get transactions => _transactions;
   bool get isLoading => _isLoading;
-  bool get hasError => _hasError;
+
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  String _error = '';
   String get error => _error;
+  bool get hasError => _error.isNotEmpty;
+
+  void _setError(String error) {
+    _error = error;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _error = '';
+    notifyListeners();
+  }
+
+  List<TransactionModel> _transactions = [];
+  List<TransactionModel> get transactions => _transactions;
 
   // Fetch all transactions
   Future<void> fetchAll() async {
     _setLoading(true);
 
     try {
-      final transactions = await _repository.findAll();
-      _transactions = transactions;
-      _setError(false, '');
+      _transactions = await _repository.findAll();
     } catch (e) {
-      _setError(true, 'Failed to load transactions: ${e.toString()}');
+      _setError('Failed to load transactions: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
   }
 
   // Find transaction by ID
-  Future<TransactionModel?> findById(String id) async {
+  Future<TransactionModel?> findById(int id) async {
+    _setLoading(true);
+
     try {
       return await _repository.findById(id);
     } catch (e) {
-      _setError(true, 'Failed to find transaction: ${e.toString()}');
+      _setError('Failed to find transaction: ${e.toString()}');
       return null;
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -48,10 +64,9 @@ class TransactionProvider with ChangeNotifier {
 
     try {
       await _repository.create(transaction);
-      await fetchAll(); // Refresh the list
-      _setError(false, '');
+      await fetchAll();
     } catch (e) {
-      _setError(true, 'Failed to add transaction: ${e.toString()}');
+      _setError('Failed to add transaction: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
@@ -63,10 +78,9 @@ class TransactionProvider with ChangeNotifier {
 
     try {
       await _repository.update(transaction);
-      await fetchAll(); // Refresh the list
-      _setError(false, '');
+      await fetchAll();
     } catch (e) {
-      _setError(true, 'Failed to update transaction: ${e.toString()}');
+      _setError('Failed to update transaction: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
@@ -78,10 +92,9 @@ class TransactionProvider with ChangeNotifier {
 
     try {
       await _repository.delete(transaction);
-      await fetchAll(); // Refresh the list
-      _setError(false, '');
+      await fetchAll();
     } catch (e) {
-      _setError(true, 'Failed to delete transaction: ${e.toString()}');
+      _setError('Failed to delete transaction: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
@@ -93,10 +106,9 @@ class TransactionProvider with ChangeNotifier {
 
     try {
       await _repository.softDelete(transaction);
-      await fetchAll(); // Refresh the list
-      _setError(false, '');
+      await fetchAll();
     } catch (e) {
-      _setError(true, 'Failed to soft delete transaction: ${e.toString()}');
+      _setError('Failed to soft delete transaction: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
@@ -108,44 +120,39 @@ class TransactionProvider with ChangeNotifier {
 
     try {
       await _repository.restore(transaction);
-      await fetchAll(); // Refresh the list
-      _setError(false, '');
+      await fetchAll();
     } catch (e) {
-      _setError(true, 'Failed to restore transaction: ${e.toString()}');
+      _setError('Failed to restore transaction: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
   }
 
-  // Get transactions by type (income/expense)
-  Future<List<TransactionModel>> getByType(TransactionTypeEnum type) async {
+  // Find transactions by type (income/expense)
+  Future<List<TransactionModel>> findByType(TransactionTypeEnum type) async {
+    _setLoading(true);
+
     try {
       return await _repository.findByType(type);
     } catch (e) {
-      _setError(true, 'Failed to get transactions by type: ${e.toString()}');
+      _setError('Failed to get transactions by type: ${e.toString()}');
       return [];
+    } finally {
+      _setLoading(false);
     }
   }
 
-  // Get transactions in a date range
-  Future<List<TransactionModel>> getByDateRange(DateTime start, DateTime end) async {
+  // Find transactions in a date range
+  Future<List<TransactionModel>> findByDateRange(DateTime start, DateTime end) async {
+    _setLoading(true);
+
     try {
       return await _repository.findByDateRange(start, end);
     } catch (e) {
-      _setError(true, 'Failed to get transactions by date range: ${e.toString()}');
+      _setError('Failed to get transactions by date range: ${e.toString()}');
       return [];
+    } finally {
+      _setLoading(false);
     }
-  }
-
-  // Helper methods
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setError(bool hasError, String message) {
-    _hasError = hasError;
-    _error = message;
-    notifyListeners();
   }
 }

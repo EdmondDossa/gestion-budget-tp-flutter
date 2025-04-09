@@ -139,10 +139,13 @@ final class _TransactionsScreenState extends State<TransactionsScreen> {
               itemCount: transactionProvider.transactions.length,
               itemBuilder: (context, index) {
                 final transaction = transactionProvider.transactions[index];
-                return TransactionCard(
-                  transaction: transaction,
-                  onEdit: () => handleEditTransaction(transaction),
-                  onDelete: () => handleDeleteTransaction(transaction),
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TransactionCard(
+                    transaction: transaction,
+                    onEdit: () => handleEditTransaction(transaction),
+                    onDelete: () => handleDeleteTransaction(transaction),
+                  ),
                 );
               },
             );

@@ -1,9 +1,8 @@
-import 'package:budgetti/utils/date.dart';
+import '/core/persistable.model.dart';
 
-final class BudgetModel {
-  /// The unique identifier for the budget. 
-  final String? id;
+import 'category.dart';
 
+final class BudgetModel extends PersistableModel {
   /// The periodicity of the budget, indicating how often it recurs.
   final BudgetPeriodicityEnum periodicity;
 
@@ -13,73 +12,56 @@ final class BudgetModel {
   /// The currency in which the budget amount is specified.
   final String currencyCode;
 
+  /// The category associated with the budget.
+  final CategoryModel category;
+
   /// Observations or notes related to the budget.
   final String? observation;
 
-  /// The date and time when the budget was created.
-  final DateTime createdAt;
-
-  /// The date and time when the budget was last updated.
-  final DateTime? updatedAt;
-
-  /// The date and time when the budget was deleted.
-  final DateTime? deletedAt;
-
   /// Constructor for creating a new budget.
   BudgetModel({
-    this.id,
+    super.id,
     required this.periodicity,
     required this.amount,
-    this.observation,
     required this.currencyCode,
-    required this.createdAt,
-    this.updatedAt,
-    this.deletedAt,
+    this.observation,
+    required this.category,
+    super.createdAt,
+    super.updatedAt,
+    super.deletedAt,
   });
 
   /// Factory methods for creating a new budget or updating an existing one.
   factory BudgetModel.create({
-    String? id,
     required BudgetPeriodicityEnum periodicity,
     required double amount,
     required String currencyCode,
     String? observation,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
-  }) {    
+    required CategoryModel category
+  }) {
     return BudgetModel(
-      id: id,
       periodicity: periodicity,
       amount: amount,
       currencyCode: currencyCode,
       observation: observation,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      deletedAt: deletedAt,
+      category: category
     );
   }
 
   /// Factory method for updating an existing budget.
   factory BudgetModel.update({
-    required String id,
     required BudgetPeriodicityEnum periodicity,
     required double amount,
     required String currencyCode,
     String? observation,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
-  }) {    
+    required CategoryModel category
+  }) {
     return BudgetModel(
-      id: id,
       periodicity: periodicity,
       amount: amount,
       currencyCode: currencyCode,
       observation: observation,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      deletedAt: deletedAt,
+      category: category
     );
   }
 
@@ -91,9 +73,17 @@ final class BudgetModel {
       amount: map['amount'],
       currencyCode: map['currency_code'],
       observation: map['observation'],
-      createdAt: DateUtils.parse(map['created_at']),
-      updatedAt: DateUtils.tryParse(map['updated_at']),
-      deletedAt: DateUtils.tryParse(map['deleted_at']),
+      createdAt: DateTime.parse(map['created_at']),
+      updatedAt: DateTime.parse(map['updated_at']),
+      deletedAt: map['deleted_at'] != null ? DateTime.parse(map['deleted_at']) : null,
+      category: CategoryModel(
+        id: map['category_id'],
+        name: map['category_name'],
+        description: map['category_description'],
+        createdAt: DateTime.parse(map['category_created_at']),
+        updatedAt: DateTime.parse(map['category_updated_at']),
+        deletedAt: map['category_deleted_at'] != null ? DateTime.parse(map['category_deleted_at']) : null
+      )
     );
   }
 
@@ -105,20 +95,17 @@ final class BudgetModel {
       'amount': amount,
       'currency_code': currencyCode,
       'observation': observation,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-      'deleted_at': deletedAt?.toIso8601String(),
+      'category_id': category.id
     };
   }
-
 }
 
 /// Enum representing the periodicity of a budget.
 enum BudgetPeriodicityEnum {
-  weekly(100, 'weekly', 'Weekly'),
-  monthly(101, 'monthly', 'Monthly'),
-  trimesterly(102, 'trimesterly', 'Trimesterly'),
-  yearly(103, 'yearly', 'Yearly');
+  weekly(100, 'budget.periodicity.weekly', 'Weekly'),
+  monthly(101, 'budget.periodicity.monthly', 'Monthly'),
+  trimesterly(102, 'budget.periodicity.trimesterly', 'Trimesterly'),
+  yearly(103, 'budget.periodicity.yearly', 'Yearly');
 
   final int id;
   final String code;
@@ -129,5 +116,4 @@ enum BudgetPeriodicityEnum {
   static BudgetPeriodicityEnum fromId(int id) {
     return BudgetPeriodicityEnum.values.firstWhere((e) => e.id == id);
   }
-
 }

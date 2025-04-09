@@ -2,31 +2,26 @@ import 'dart:io';
 
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'package:budgetti/db/db.helper.dart';
-import 'package:budgetti/db/crud.repository.dart';
-import 'package:budgetti/utils/nanoid.dart';
+import '/db/db.helper.dart';
+import '/db/crud.repository.dart';
 
+import 'transaction.dart';
 import 'category.dart';
 import 'category.repository.dart';
 
-import 'transaction.dart';
-
 final class TransactionRepository implements CrudRepository<TransactionModel> {
-
   static const String tableName = 'transactions';
-  static const String identifierPrefix = 'tr';
 
   static String createTableQuery = '''
     CREATE TABLE IF NOT EXISTS $tableName (
-      id TEXT PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       type INTEGER NOT NULL CHECK (type IN (${TransactionTypeEnum.income.id}, ${TransactionTypeEnum.expense.id})),
       title TEXT NOT NULL,
       description TEXT,
       amount REAL NOT NULL,
       timestamp TEXT NOT NULL,
-
       currency_code TEXT NOT NULL,
-      category_id TEXT,
+      category_id INTEGER,
 
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
@@ -49,75 +44,92 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
-
-    _initializeDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
-    _database = await DBHelper().database;
+  Future<Database> _getDb() async {
+    _database ??= await DBHelper().database;
+    return _database!;
   }
 
   @override
   Future<List<TransactionModel>> findAll({bool includeDeleted = false}) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final db = await _getDb();
 
-    final maps = await _database!.query(
-      tableName,
-      where: includeDeleted ? null : 'deleted_at IS NULL',
-    );
-    return maps.map((map) => TransactionModel.fromMap(map)).toList();
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        t.*,
+        c.name AS category_name,
+        c.description AS category_description,
+        c.created_at AS category_created_at,
+        c.updated_at AS category_updated_at,
+        c.deleted_at AS category_deleted_at
+      FROM $tableName t
+      LEFT JOIN ${CategoryRepository.tableName} c ON t.category_id = c.id
+      ${includeDeleted ? '' : 'WHERE t.deleted_at IS NULL'}
+    ''');
+
+    return maps.map(TransactionModel.fromMap).toList();
   }
 
   @override
   Future<List<TransactionModel>> findAllDeleted() async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final db = await _getDb();
 
-    final maps = await _database!.query(
-      tableName,
-      where: 'deleted_at IS NOT NULL',
-    );
-    return maps.map((map) => TransactionModel.fromMap(map)).toList();
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        t.*,
+        c.name AS category_name,
+        c.description AS category_description,
+        c.created_at AS category_created_at,
+        c.updated_at AS category_updated_at,
+        c.deleted_at AS category_deleted_at
+      FROM $tableName t
+      LEFT JOIN ${CategoryRepository.tableName} c ON t.category_id = c.id
+      WHERE t.deleted_at IS NOT NULL
+    ''');
+
+    return maps.map(TransactionModel.fromMap).toList();
   }
 
   @override
-  Future<TransactionModel?> findById(String id, {bool includeDeleted = false}) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+  Future<TransactionModel?> findById(int id, {bool includeDeleted = false}) async {
+    final db = await _getDb();
 
-    final maps = await _database!.query(
-      tableName,
-      where: includeDeleted ? 'id = ?' : 'id = ? AND deleted_at IS NULL',
-      whereArgs: [id],
-    );
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        t.*,
+        c.name AS category_name,
+        c.description AS category_description,
+        c.created_at AS category_created_at,
+        c.updated_at AS category_updated_at,
+        c.deleted_at AS category_deleted_at
+      FROM $tableName t
+      LEFT JOIN ${CategoryRepository.tableName} c ON t.category_id = c.id
+      WHERE t.id = ? ${includeDeleted ? '' : 'AND t.deleted_at IS NULL'}
+    ''', [id]);
+
     return maps.isNotEmpty ? TransactionModel.fromMap(maps.first) : null;
   }
 
   @override
   Future<int> create(TransactionModel transaction) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final db = await _getDb();
+    final now = DateTime.now().toIso8601String();
 
-    return await _database!.insert(tableName, {
-      'id': NanoidUtils.generate(prefix: identifierPrefix),
-      ...transaction.toMap(),
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
-    });
+    return await db.insert(
+      tableName,
+      {
+        ...transaction.toMap(),
+        'created_at': now,
+        'updated_at': now,
+      },
+    );
   }
 
   @override
   Future<int> update(TransactionModel transaction) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    return await _database!.update(
+    final db = await _getDb();
+    return await db.update(
       tableName,
       {
         ...transaction.toMap(),
@@ -130,11 +142,8 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> delete(TransactionModel transaction) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    return await _database!.delete(
+    final db = await _getDb();
+    return await db.delete(
       tableName,
       where: 'id = ?',
       whereArgs: [transaction.id],
@@ -143,13 +152,14 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> softDelete(TransactionModel transaction) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    return await _database!.update(
+    final db = await _getDb();
+    final now = DateTime.now().toIso8601String();
+    return await db.update(
       tableName,
-      {'deleted_at': DateTime.now().toIso8601String()},
+      {
+        'deleted_at': now,
+        'updated_at': now,
+      },
       where: 'id = ?',
       whereArgs: [transaction.id],
     );
@@ -157,71 +167,57 @@ final class TransactionRepository implements CrudRepository<TransactionModel> {
 
   @override
   Future<int> restore(TransactionModel transaction) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    return await _database!.update(
+    final db = await _getDb();
+    final now = DateTime.now().toIso8601String();
+    return await db.update(
       tableName,
-      {'deleted_at': null},
+      {
+        'deleted_at': null,
+        'updated_at': now,
+      },
       where: 'id = ?',
       whereArgs: [transaction.id],
     );
   }
 
+  // Extra queries
   Future<List<TransactionModel>> findByType(TransactionTypeEnum type) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    final maps = await _database!.query(
+    final db = await _getDb();
+    final maps = await db.query(
       tableName,
       where: 'type = ?',
       whereArgs: [type.id],
     );
-    return maps.map((map) => TransactionModel.fromMap(map)).toList();
+    return maps.map(TransactionModel.fromMap).toList();
   }
 
   Future<List<TransactionModel>> findByCategory(CategoryModel category) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    final maps = await _database!.query(
+    final db = await _getDb();
+    final maps = await db.query(
       tableName,
       where: 'category_id = ?',
       whereArgs: [category.id],
     );
-    return maps.map((map) => TransactionModel.fromMap(map)).toList();
+    return maps.map(TransactionModel.fromMap).toList();
   }
 
   Future<List<TransactionModel>> findByCurrency(String currencyCode) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    final maps = await _database!.query(
+    final db = await _getDb();
+    final maps = await db.query(
       tableName,
       where: 'currency_code = ?',
       whereArgs: [currencyCode],
     );
-    return maps.map((map) => TransactionModel.fromMap(map)).toList();
+    return maps.map(TransactionModel.fromMap).toList();
   }
 
-  Future<List<TransactionModel>> findByDateRange(DateTime startDate, DateTime endDate) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
-
-    final maps = await _database!.query(
+  Future<List<TransactionModel>> findByDateRange(DateTime start, DateTime end) async {
+    final db = await _getDb();
+    final maps = await db.query(
       tableName,
       where: 'timestamp BETWEEN ? AND ?',
-      whereArgs: [
-        startDate.toIso8601String(),
-        endDate.toIso8601String(),
-      ],
+      whereArgs: [start.toIso8601String(), end.toIso8601String()],
     );
-    return maps.map((map) => TransactionModel.fromMap(map)).toList();
+    return maps.map(TransactionModel.fromMap).toList();
   }
-
 }

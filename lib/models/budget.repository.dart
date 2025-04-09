@@ -1,28 +1,33 @@
 import 'dart:io';
-import 'package:budgetti/db/db.helper.dart';
-import 'package:budgetti/db/crud.repository.dart';
-import 'package:budgetti/utils/nanoid.dart';
+
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '/db/db.helper.dart';
+import '/db/crud.repository.dart';
+
 import 'budget.dart';
+import 'category.repository.dart';
 
 final class BudgetRepository implements CrudRepository<BudgetModel> {
   static const String tableName = 'budgets';
-  static const String identifierPrefix = 'bd';
 
-  static String createTableQuery = '''
-    CREATE TABLE IF NOT EXISTS $tableName (
-      id TEXT PRIMARY KEY,
-      periodicity INTEGER UNIQUE CHECK (periodicity IN (${BudgetPeriodicityEnum.weekly.id}, ${BudgetPeriodicityEnum.monthly.id}, ${BudgetPeriodicityEnum.trimesterly.id}, ${BudgetPeriodicityEnum.yearly.id})),
-      amount REAL NOT NULL,
-      currency_code TEXT NOT NULL,
-      observation TEXT,
+static String createTableQuery = '''
+  CREATE TABLE IF NOT EXISTS $tableName (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    periodicity INTEGER CHECK (periodicity IN (${BudgetPeriodicityEnum.weekly.id}, ${BudgetPeriodicityEnum.monthly.id}, ${BudgetPeriodicityEnum.trimesterly.id}, ${BudgetPeriodicityEnum.yearly.id})),
+    amount REAL NOT NULL,
+    currency_code TEXT NOT NULL,
+    observation TEXT,
+    category_id INTEGER NOT NULL,
 
-      created_at TEXT NOT NULL,
-      updated_at TEXT,
-      deleted_at TEXT
-    )
-  ''';
+    created_at TEXT NOT NULL,
+    updated_at TEXT,
+    deleted_at TEXT,
+
+    UNIQUE(category_id, periodicity),
+    FOREIGN KEY (category_id) REFERENCES ${CategoryRepository.tableName}(id) ON DELETE CASCADE
+  )
+''';
 
   static const String createIndexesQuery = '''
     CREATE INDEX IF NOT EXISTS idx_${tableName}_periodicity ON $tableName (periodicity);
@@ -36,73 +41,91 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
-
-    _initializeDatabase();
   }
 
-  Future<void> _initializeDatabase() async {
-    _database = await DBHelper().database;
+  Future<Database> _getDb() async {
+    _database ??= await DBHelper().database;
+    return _database!;
   }
 
   @override
-  Future<List<BudgetModel>> findAll({bool includeDeleted = false}) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+  Future<List<BudgetModel>> findAll({ bool includeDeleted = false }) async {
+    final db = await _getDb();
 
-    final maps = await _database!.query(
-      tableName,
-      where: includeDeleted ? null : 'deleted_at IS NULL',
-    );
+  final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        b.*,
+        c.name AS category_name,
+        c.description AS category_description,
+        c.created_at AS category_created_at,
+        c.updated_at AS category_updated_at,
+        c.deleted_at AS category_deleted_at
+      FROM $tableName b
+      INNER JOIN ${CategoryRepository.tableName} c ON b.category_id = c.id
+      ${includeDeleted ? '' : 'WHERE b.deleted_at IS NULL'}
+    ''');
+
     return maps.map((map) => BudgetModel.fromMap(map)).toList();
   }
 
   @override
   Future<List<BudgetModel>> findAllDeleted() async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final db = await _getDb();
 
-    final maps = await _database!.query(
-      tableName,
-      where: 'deleted_at IS NOT NULL',
-    );
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        b.*,
+        c.name AS category_name,
+        c.description AS category_description,
+        c.created_at AS category_created_at,
+        c.updated_at AS category_updated_at,
+        c.deleted_at AS category_deleted_at
+      FROM $tableName b
+      INNER JOIN ${CategoryRepository.tableName} c ON b.category_id = c.id
+      WHERE b.deleted_at IS NOT NULL
+    ''');
+
     return maps.map((map) => BudgetModel.fromMap(map)).toList();
   }
 
   @override
-  Future<BudgetModel?> findById(String id, {bool includeDeleted = false}) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+  Future<BudgetModel?> findById(int id, { bool includeDeleted = false }) async {
+    final db = await _getDb();
 
-    final maps = await _database!.query(
-      tableName,
-      where: includeDeleted ? 'id = ?' : 'id = ? AND deleted_at IS NULL',
-      whereArgs: [id],
-    );
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        b.*,
+        c.name AS category_name,
+        c.description AS category_description,
+        c.created_at AS category_created_at,
+        c.updated_at AS category_updated_at,
+        c.deleted_at AS category_deleted_at
+      FROM $tableName b
+      INNER JOIN ${CategoryRepository.tableName} c ON b.category_id = c.id
+      WHERE b.id = ? ${includeDeleted ? '' : 'AND b.deleted_at IS NULL'}
+    ''', [id]);
+
     return maps.isNotEmpty ? BudgetModel.fromMap(maps.first) : null;
   }
 
   @override
   Future<int> create(BudgetModel budget) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final now = DateTime.now().toIso8601String();
+    
+    final db = await _getDb();
 
     try {
-      return await _database!.insert(
+      return await db.insert(
         tableName,
         {
-          'id': NanoidUtils.generate(prefix: identifierPrefix),
           ...budget.toMap(),
-          'created_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
+          'created_at': now,
+          'updated_at': now
         },
       );
-    } on DatabaseException catch (e) {
-      if (e.isUniqueConstraintError()) {
-        throw Exception('A budget with this periodicity already exists.');
+    } on DatabaseException catch (exception) {
+      if (exception.isUniqueConstraintError()) {
+        throw Exception('A budget with this periodicity, in this category, already exists.');
       }
       rethrow;
     }
@@ -110,66 +133,63 @@ final class BudgetRepository implements CrudRepository<BudgetModel> {
 
   @override
   Future<int> update(BudgetModel budget) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final now = DateTime.now().toIso8601String();
+    
+    final db = await _getDb();
 
-    return await _database!.update(
+    return await db.update(
       tableName,
       {
         ...budget.toMap(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': now
       },
       where: 'id = ?',
-      whereArgs: [budget.id],
+      whereArgs: [budget.id]
     );
   }
 
   @override
   Future<int> delete(BudgetModel budget) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final db = await _getDb();
 
-    return await _database!.delete(
+    return await db.delete(
       tableName,
       where: 'id = ?',
-      whereArgs: [budget.id],
+      whereArgs: [budget.id]
     );
   }
 
   @override
   Future<int> softDelete(BudgetModel budget) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final now = DateTime.now().toIso8601String();
+    
+    final db = await _getDb();
 
-    final nowIso8601 = DateTime.now().toIso8601String();
-    return await _database!.update(
+    return await db.update(
       tableName,
       {
-        'deleted_at': nowIso8601,
-        'updated_at': nowIso8601,
+        'deleted_at': now,
+        'updated_at': now
       },
       where: 'id = ?',
-      whereArgs: [budget.id],
+      whereArgs: [budget.id]
     );
   }
 
   @override
   Future<int> restore(BudgetModel budget) async {
-    if (_database == null) {
-      await _initializeDatabase();
-    }
+    final now = DateTime.now().toIso8601String();
+    
+    final db = await _getDb();
 
-    return await _database!.update(
+    return await db.update(
       tableName,
       {
         'deleted_at': null,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': now
       },
       where: 'id = ?',
-      whereArgs: [budget.id],
+      whereArgs: [budget.id]
     );
   }
 }

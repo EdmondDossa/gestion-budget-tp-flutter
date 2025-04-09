@@ -1,5 +1,8 @@
 {
   "explorer.fileNesting.patterns": {
     "*.dart": "$(capture).*.dart"
-  }
+  },
+  "cSpell.words": [
+    "persistable"
+  ]
 }

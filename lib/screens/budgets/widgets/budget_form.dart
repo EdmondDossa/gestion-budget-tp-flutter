@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-import 'package:budgetti/models/budget.dart';
+import '/models/budget.dart';
+import '/models/category.dart';
+import '/models/category.provider.dart';
 
 final class BudgetForm extends StatefulWidget {
   final BudgetModel? budget;
@@ -21,26 +24,31 @@ final class BudgetForm extends StatefulWidget {
 class _BudgetFormState extends State<BudgetForm> {
   final _formKey = GlobalKey<ShadFormState>();
 
+  CategoryProvider get categoryProvider => Provider.of<CategoryProvider>(context, listen: false);
+
   bool get isEditMode => widget.budget?.id != null;
 
-  late String? _id;
+  late int? _id;
   late double _amount;
   late String _currencyCode;
   late BudgetPeriodicityEnum _periodicity;
   late String? _observation;
-  late String _createdAt;
-  late String? _updatedAt;
+  late CategoryModel _category;
 
   @override
   void initState() {
     super.initState();
+
+    Future.microtask(() {
+      categoryProvider.fetchAll();
+    });
+
     _id = widget.budget?.id;
-    _amount = widget.budget?.amount ?? 0.0;
+    _amount = widget.budget?.amount ?? 0;
     _currencyCode = widget.budget?.currencyCode ?? 'XOF';
     _periodicity = widget.budget?.periodicity ?? BudgetPeriodicityEnum.monthly;
     _observation = widget.budget?.observation ?? '';
-    _createdAt = widget.budget?.createdAt.toString() ?? DateTime.now().toString();
-    _updatedAt = widget.budget?.updatedAt?.toString();
+    _category = widget.budget?.category ?? categoryProvider.categories.first;
   }
 
   void handleSubmit() {
@@ -51,8 +59,7 @@ class _BudgetFormState extends State<BudgetForm> {
         currencyCode: _currencyCode,
         periodicity: _periodicity,
         observation: _observation,
-        createdAt: DateTime.tryParse(_createdAt) ?? DateTime.now(),
-        updatedAt: _updatedAt != null ? DateTime.tryParse(_updatedAt!) : null,
+        category: _category
       );
       widget.onSubmit(budget);
       handleReset();
@@ -84,9 +91,11 @@ class _BudgetFormState extends State<BudgetForm> {
             style: theme.textTheme.muted,
           ),
           const SizedBox(height: 20),
-          const Text('Select the periodicity'),
+
+          // Periodicity
+          Text('Select the periodicity', style: theme.textTheme.small),
           const SizedBox(height: 8),
-          ShadSelect<BudgetPeriodicityEnum>(
+          ShadSelectFormField<BudgetPeriodicityEnum>(
             initialValue: _periodicity,
             minWidth: double.infinity,
             placeholder: const Text('Periodicity'),
@@ -99,6 +108,25 @@ class _BudgetFormState extends State<BudgetForm> {
             },
           ),
           const SizedBox(height: 20),
+
+          // Category
+          Text('Select the category', style: theme.textTheme.small),
+          const SizedBox(height: 8),
+          ShadSelectFormField<CategoryModel>(
+            initialValue: _category,
+            minWidth: double.infinity,
+            placeholder: const Text('Category'),
+            selectedOptionBuilder: (context, value) => Text(value.name),
+            options: categoryProvider.categories.map((category) => ShadOption(value: category, child: Text(category.name))),
+            onChanged: (value) {
+              setState(() {
+                _category = value ?? categoryProvider.categories.first;
+              });
+            },
+          ),
+          const SizedBox(height: 20),
+
+          // Amount and Currency
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -110,7 +138,7 @@ class _BudgetFormState extends State<BudgetForm> {
                   label: const Text('Amount'),
                   keyboardType: TextInputType.number,
                   placeholder: const Text('Enter the budget amount'),
-                  onSaved: (value) => _amount = double.tryParse(value ?? '') ?? 0.0,
+                  onSaved: (value) => _amount = double.tryParse(value ?? '') ?? 0,
                   validator: (value) {
                     if (value.isEmpty) {
                       return 'Amount is required';
@@ -122,7 +150,7 @@ class _BudgetFormState extends State<BudgetForm> {
                   },
                 ),
               ),
-              ShadSelect<String>(
+              ShadSelectFormField<String>(
                 initialValue: widget.budget?.currencyCode,
                 placeholder: const Text('Currency'),
                 selectedOptionBuilder: (context, value) => Text(value),
@@ -137,6 +165,8 @@ class _BudgetFormState extends State<BudgetForm> {
             ],
           ),
           const SizedBox(height: 20),
+
+          // Observation
           ShadInputFormField(
             id: 'observation',
             initialValue: _observation,

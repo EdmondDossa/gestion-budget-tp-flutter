@@ -29,9 +29,11 @@ final class BudgetCard extends StatelessWidget {
                 children: [
                   Text('${budget.periodicity.name} Budget', style: theme.textTheme.h3),
                   const SizedBox(height: 4),
+                  Text('Category: ${budget.category.name}', style: theme.textTheme.muted),
+                  const SizedBox(height: 4),
                   Text('Amount: ${budget.amount} ${budget.currencyCode}', style: theme.textTheme.muted),
                   const SizedBox(height: 4),
-                  Text(budget.observation ?? 'No observations', style: theme.textTheme.muted),
+                  Text('Observation: ${budget.observation ?? 'No observations'}', style: theme.textTheme.muted),
                 ],
               ),
             ),

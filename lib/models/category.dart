@@ -1,64 +1,38 @@
-class CategoryModel {
-  /// The unique identifier for the category
-  final String? id;
+import '/core/persistable.model.dart';
 
+class CategoryModel extends PersistableModel {
   /// The name of the category
   final String name;
 
   /// The description of the category
   final String? description;
 
-  /// The date and time when the category was created
-  final DateTime createdAt;
-
-  /// The date and time when the category was last updated
-  final DateTime? updatedAt;
-
-  /// The date and time when the category was deleted
-  final DateTime? deletedAt;
-
   CategoryModel({
-    this.id,
+    super.id,
     required this.name,
     this.description,
-    required this.createdAt,
-    this.updatedAt,
-    this.deletedAt,
+    super.createdAt,
+    super.updatedAt,
+    super.deletedAt,
   });
 
   factory CategoryModel.create({
-    String? id,
     required String name,
-    String? description,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
+    String? description
   }) {
     return CategoryModel(
-      id: id,
       name: name,
-      description: description,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      deletedAt: deletedAt,
+      description: description
     );
   }
 
   factory CategoryModel.update({
-    required String? id,
     required String name,
-    String? description,
-    required DateTime createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
+    String? description
   }) {
     return CategoryModel(
-      id: id,
       name: name,
-      description: description,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      deletedAt: deletedAt,
+      description: description
     );
   }
 
@@ -68,8 +42,8 @@ class CategoryModel {
       name: map['name'],
       description: map['description'],
       createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.tryParse(map['updated_at']),
-      deletedAt: DateTime.tryParse(map['deleted_at'] ?? ''),
+      updatedAt: DateTime.parse(map['updated_at']),
+      deletedAt: map['deleted_at'] != null ? DateTime.parse(map['deleted_at']) : null
     );
   }
 
@@ -77,10 +51,7 @@ class CategoryModel {
     return {
       'id': id,
       'name': name,
-      'description': description,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-      'deleted_at': deletedAt?.toIso8601String(),
+      'description': description
     };
   }
 }
